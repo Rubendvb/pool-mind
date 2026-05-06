@@ -5,7 +5,11 @@ type Field = "a" | "b" | "c" | "x";
 
 // A / B = C / X  →  A × X = B × C
 function solve(vals: Record<Field, string>, target: Field): number | null {
-  const get = (k: Field) => (k === target ? null : parseFloat(vals[k]));
+  const get = (k: Field) => {
+    if (k === target) return null;
+    const v = parseFloat(vals[k]);
+    return isNaN(v) ? null : v;
+  };
   const a = get("a");
   const b = get("b");
   const c = get("c");

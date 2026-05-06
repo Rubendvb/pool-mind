@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
-import { RuleOfThreeCalculator } from "@/components/calculators/RuleOfThreeCalculator";
+import { RuleOfThreeTabs } from "@/components/calculators/RuleOfThreeTabs";
 
 export default function RegraDesTresPage() {
   return (
@@ -14,7 +14,7 @@ export default function RegraDesTresPage() {
           </Link>
         }
       />
-      <RuleOfThreeCalculator />
+      <RuleOfThreeTabs />
     </main>
   );
 }
