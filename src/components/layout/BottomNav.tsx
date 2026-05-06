@@ -6,6 +6,7 @@ const items = [
   { href: "/", label: "Dashboard", icon: "🏠" },
   { href: "/medicoes", label: "Medições", icon: "🧪" },
   { href: "/tarefas", label: "Tarefas", icon: "✅" },
+  { href: "/produtos", label: "Produtos", icon: "🧴" },
   { href: "/insights", label: "Insights", icon: "📊" },
 ];
 
@@ -20,7 +21,7 @@ export function BottomNav() {
             <Link
               key={href}
               href={href}
-              className={`relative flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl transition-all duration-200 ${
+              className={`relative flex flex-col items-center gap-0.5 px-2 py-2 rounded-xl transition-all duration-200 ${
                 active ? "text-ocean-300" : "text-white/35 hover:text-white/60"
               }`}
             >

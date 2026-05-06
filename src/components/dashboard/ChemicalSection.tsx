@@ -1,7 +1,7 @@
 import { OverallStatusCard } from "./OverallStatusCard";
 import { ParameterCard } from "@/components/ui/ParameterCard";
 import { DosageCard } from "./DosageCard";
-import { getMeasurements } from "@/lib/supabase/queries";
+import { getMeasurements, getProducts } from "@/lib/supabase/queries";
 import { buildParameters, calcDosages, overallStatus } from "@/lib/chemistry";
 
 interface Props {
@@ -11,11 +11,14 @@ interface Props {
 }
 
 export async function ChemicalSection({ poolId, poolVolume, poolName }: Props) {
-  const measurements = await getMeasurements(poolId, 1);
+  const [measurements, products] = await Promise.all([
+    getMeasurements(poolId, 1),
+    getProducts(),
+  ]);
   const latest = measurements[0] ?? null;
   const params = latest ? buildParameters(latest) : [];
   const status = latest ? overallStatus(params) : ("unknown" as const);
-  const dosages = latest ? calcDosages(latest, poolVolume) : [];
+  const dosages = latest ? calcDosages(latest, poolVolume, products) : [];
 
   return (
     <>

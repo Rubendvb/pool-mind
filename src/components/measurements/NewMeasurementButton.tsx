@@ -5,6 +5,7 @@ import { addMeasurement } from "@/app/(app)/medicoes/actions";
 
 interface Props {
   poolId: string;
+  poolVolume: number;
 }
 
 const fields = [
@@ -14,7 +15,7 @@ const fields = [
   { name: "hardness", label: "Dureza (mg/L) — opcional", min: "0", max: "1000", step: "1", placeholder: "200 – 400", required: false },
 ];
 
-export function NewMeasurementButton({ poolId }: Props) {
+export function NewMeasurementButton({ poolId, poolVolume }: Props) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +45,22 @@ export function NewMeasurementButton({ poolId }: Props) {
 
       <Modal open={open} onClose={() => setOpen(false)} title="Nova Medição">
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-ocean-400 font-medium">Volume atual da piscina (L)</label>
+            <input
+              name="pool_volume"
+              type="number"
+              min="1"
+              step="100"
+              defaultValue={poolVolume}
+              required
+              className="glass px-3 py-2.5 text-white placeholder-ocean-400/50 outline-none focus:ring-1 focus:ring-ocean-500 rounded-xl text-sm"
+            />
+            <p className="text-xs text-ocean-400/60 mt-0.5">
+              Ajuste o volume caso a piscina esteja com mais ou menos água antes de calcular as dosagens.
+            </p>
+          </div>
+          <div className="border-t border-white/10 my-1" />
           <div className="grid grid-cols-2 gap-3">
             {fields.map((f) => (
               <div key={f.name} className="flex flex-col gap-1">

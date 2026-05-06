@@ -3,6 +3,7 @@ import type {
   ChemicalParameter,
   ParameterStatus,
   DosageRecommendation,
+  Product,
 } from "@/types";
 
 const IDEALS = {
@@ -61,34 +62,60 @@ export function buildParameters(m: Measurement): ChemicalParameter[] {
   ];
 }
 
+// Concentrações de referência usadas nas fórmulas base (%)
+const REF_CONCENTRATION: Record<string, number> = {
+  chlorine: 90,      // Triclorado 90%
+  ph_up: 100,        // Barrilha (carbonato de sódio puro)
+  alkalinity_up: 100, // Bicarbonato de Sódio puro
+};
+
+function findBestProduct(products: Product[], category: string, today: string): Product | undefined {
+  return products.find(
+    (p) =>
+      p.category === category &&
+      p.is_active &&
+      (p.expiration_date === null || p.expiration_date >= today) &&
+      (p.quantity === null || p.quantity > 0)
+  );
+}
+
 export function calcDosages(
   m: Measurement,
-  volumeLiters: number
+  volumeLiters: number,
+  products: Product[] = []
 ): DosageRecommendation[] {
+  const today = new Date().toISOString().split("T")[0];
   const recs: DosageRecommendation[] = [];
 
   // pH correction
   if (m.ph < IDEALS.ph.min) {
-    // Need to raise pH: use pH+/barrilha (soda ash)
-    // ~20g per 10,000L raises pH by ~0.2
     const delta = IDEALS.ph.min - m.ph;
-    const amount = Math.ceil((delta / 0.2) * 20 * (volumeLiters / 10000));
-    recs.push({
-      product: "pH+ (Barrilha)",
-      amount,
-      unit: "g",
-      action: "add",
-      priority: delta > 0.4 ? "urgent" : "soon",
-    });
+    const baseAmount = Math.ceil((delta / 0.2) * 20 * (volumeLiters / 10000));
+    const userProduct = findBestProduct(products, "ph_up", today);
+
+    let amount = baseAmount;
+    let productName = "pH+ (Barrilha)";
+    let unit: string = "g";
+
+    if (userProduct) {
+      productName = userProduct.name;
+      unit = userProduct.unit;
+      if (userProduct.concentration !== null) {
+        amount = Math.ceil(baseAmount * (REF_CONCENTRATION.ph_up / userProduct.concentration));
+      }
+    }
+
+    recs.push({ product: productName, amount, unit, action: "add", priority: delta > 0.4 ? "urgent" : "soon" });
   } else if (m.ph > IDEALS.ph.max) {
-    // Need to lower pH: use pH-/ácido muriático
-    // ~20ml per 10,000L lowers pH by ~0.2
     const delta = m.ph - IDEALS.ph.max;
-    const amount = Math.ceil((delta / 0.2) * 20 * (volumeLiters / 10000));
+    const baseAmount = Math.ceil((delta / 0.2) * 20 * (volumeLiters / 10000));
+    const userProduct = findBestProduct(products, "ph_down", today);
+
+    // Fórmula de pH- é em ml (molalidade); apenas substitui o nome, sem ajuste de concentração
     recs.push({
-      product: "pH- (Ácido Muriático)",
-      amount,
-      unit: "ml",
+      product: userProduct ? userProduct.name : "pH- (Ácido Muriático)",
+      amount: baseAmount,
+      unit: userProduct ? userProduct.unit : "ml",
       action: "add",
       priority: delta > 0.4 ? "urgent" : "soon",
     });
@@ -96,16 +123,23 @@ export function calcDosages(
 
   // Chlorine correction
   if (m.chlorine < IDEALS.chlorine.min) {
-    // ~10g triclorado (90%) per 10,000L raises ~0.5 mg/L
     const delta = IDEALS.chlorine.min - m.chlorine;
-    const amount = Math.ceil((delta / 0.5) * 10 * (volumeLiters / 10000));
-    recs.push({
-      product: "Triclorado 90%",
-      amount,
-      unit: "g",
-      action: "add",
-      priority: m.chlorine < 0.5 ? "urgent" : "soon",
-    });
+    const baseAmount = Math.ceil((delta / 0.5) * 10 * (volumeLiters / 10000));
+    const userProduct = findBestProduct(products, "chlorine", today);
+
+    let amount = baseAmount;
+    let productName = "Triclorado 90%";
+    let unit: string = "g";
+
+    if (userProduct) {
+      productName = userProduct.name;
+      unit = userProduct.unit;
+      if (userProduct.concentration !== null) {
+        amount = Math.ceil(baseAmount * (REF_CONCENTRATION.chlorine / userProduct.concentration));
+      }
+    }
+
+    recs.push({ product: productName, amount, unit, action: "add", priority: m.chlorine < 0.5 ? "urgent" : "soon" });
   } else if (m.chlorine > IDEALS.chlorine.max) {
     recs.push({
       product: "Cloro Livre",
@@ -118,16 +152,23 @@ export function calcDosages(
 
   // Alkalinity correction
   if (m.alkalinity < IDEALS.alkalinity.min) {
-    // ~15g bicarbonato per 10,000L raises ~10 mg/L
     const delta = IDEALS.alkalinity.min - m.alkalinity;
-    const amount = Math.ceil((delta / 10) * 15 * (volumeLiters / 10000));
-    recs.push({
-      product: "Bicarbonato de Sódio",
-      amount,
-      unit: "g",
-      action: "add",
-      priority: "soon",
-    });
+    const baseAmount = Math.ceil((delta / 10) * 15 * (volumeLiters / 10000));
+    const userProduct = findBestProduct(products, "alkalinity_up", today);
+
+    let amount = baseAmount;
+    let productName = "Bicarbonato de Sódio";
+    let unit: string = "g";
+
+    if (userProduct) {
+      productName = userProduct.name;
+      unit = userProduct.unit;
+      if (userProduct.concentration !== null) {
+        amount = Math.ceil(baseAmount * (REF_CONCENTRATION.alkalinity_up / userProduct.concentration));
+      }
+    }
+
+    recs.push({ product: productName, amount, unit, action: "add", priority: "soon" });
   }
 
   return recs;

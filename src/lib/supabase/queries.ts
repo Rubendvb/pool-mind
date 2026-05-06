@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createClient } from "./server";
 import type { Database } from "./types";
+import type { Product } from "@/types";
 
 type MeasurementInsert = Database["public"]["Tables"]["measurements"]["Insert"];
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
@@ -27,6 +28,15 @@ export const getMeasurements = cache(async (poolId: string, limit = 10) => {
     .order("measured_at", { ascending: false })
     .limit(limit);
   return data ?? [];
+});
+
+export const getProducts = cache(async (): Promise<Product[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("products")
+    .select("*")
+    .order("name", { ascending: true });
+  return (data ?? []) as Product[];
 });
 
 export const getTasks = cache(async () => {

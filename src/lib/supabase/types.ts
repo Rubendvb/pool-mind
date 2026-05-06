@@ -3,6 +3,48 @@ export type Json = string | number | boolean | null | { [key: string]: Json } | 
 export interface Database {
   public: {
     Tables: {
+      products: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          category: string;
+          manufacturer: string | null;
+          concentration: number | null;
+          unit: string;
+          quantity: number | null;
+          expiration_date: string | null;
+          notes: string | null;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          category: string;
+          manufacturer?: string | null;
+          concentration?: number | null;
+          unit: string;
+          quantity?: number | null;
+          expiration_date?: string | null;
+          notes?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          category?: string;
+          manufacturer?: string | null;
+          concentration?: number | null;
+          unit?: string;
+          quantity?: number | null;
+          expiration_date?: string | null;
+          notes?: string | null;
+          is_active?: boolean;
+        };
+        Relationships: [];
+      };
       push_subscriptions: {
         Row: {
           id: string;

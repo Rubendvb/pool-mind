@@ -2,6 +2,7 @@ import { Header } from "@/components/layout/Header";
 import { ParameterCard } from "@/components/ui/ParameterCard";
 import { StatusDot } from "@/components/ui/StatusBadge";
 import { NewMeasurementButton } from "@/components/measurements/NewMeasurementButton";
+import { DeleteMeasurementButton } from "@/components/measurements/DeleteMeasurementButton";
 import { getPool, getMeasurements } from "@/lib/supabase/queries";
 import { buildParameters, overallStatus } from "@/lib/chemistry";
 
@@ -24,7 +25,7 @@ export default async function MedicoesPage() {
       <Header
         title="Medições"
         subtitle={pool.name}
-        action={<NewMeasurementButton poolId={pool.id} />}
+        action={<NewMeasurementButton poolId={pool.id} poolVolume={pool.volume} />}
       />
 
       <div className="px-4 flex flex-col gap-4">
@@ -56,10 +57,13 @@ export default async function MedicoesPage() {
                 </span>
                 {i === 0 && <span className="text-xs text-ocean-400">{date}</span>}
                 {m.notes && (
-                  <span className="text-xs text-ocean-400/70 ml-auto italic truncate max-w-32">
+                  <span className="text-xs text-ocean-400/70 italic truncate max-w-32">
                     {m.notes}
                   </span>
                 )}
+                <div className="ml-auto">
+                  <DeleteMeasurementButton measurementId={m.id} />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {params.map((p) => (
