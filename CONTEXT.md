@@ -61,6 +61,10 @@ src/
 │       │   ├── page.tsx            # Lista por categoria (Server Component async)
 │       │   ├── loading.tsx
 │       │   └── actions.ts          # addTask, completeTask
+│       ├── produtos/
+│       │   ├── page.tsx            # Gestão do inventário (Server Component async)
+│       │   ├── loading.tsx
+│       │   └── actions.ts          # addProduct, updateProduct, deleteProduct, toggleProductActive
 │       └── insights/
 │           ├── page.tsx            # Resumo, gráficos, custos, notificações
 │           └── loading.tsx
@@ -87,6 +91,11 @@ src/
 │   │   ├── TaskItem.tsx            # Item com ícone por categoria + CompleteTaskButton
 │   │   ├── CompleteTaskButton.tsx  # Chama completeTask; spinner durante pending
 │   │   └── NewTaskButton.tsx       # Abre Modal com form; chama addTask
+│   ├── products/
+│   │   ├── ProductItem.tsx         # Item da lista com status badge
+│   │   ├── ProductFormButton.tsx   # Modal de criação/edição
+│   │   ├── DeleteProductButton.tsx # Exclusão com confirmação
+│   │   └── ToggleProductButton.tsx # Alternar ativo/inativo
 │   ├── insights/
 │   │   ├── ParameterChart.tsx      # Recharts LineChart (Client Component puro)
 │   │   ├── ParameterChartClient.tsx  # Wrapper com next/dynamic ssr:false
@@ -139,17 +148,35 @@ next_due date | status enum | created_at
 id uuid PK | user_id uuid FK auth.users | endpoint text UNIQUE | p256dh text | auth text | created_at
 ```
 
+**`products`**
+```
+id uuid PK | user_id uuid FK auth.users | name text | category text | manufacturer text | concentration numeric(5,2)
+unit text | quantity numeric(10,2) | expiration_date date | notes text | is_active boolean | created_at
+dosage_reference_amount numeric(10,3) | dosage_reference_liters numeric(10,2) | dosage_effect_value numeric(10,4) | dosage_effect_type text
+price numeric(10,2) | price_unit text | package_quantity numeric(10,3)
+```
+
+**`product_applications`**
+```
+id uuid PK | user_id uuid FK auth.users | product_id uuid FK products | product_name text | measurement_id uuid FK measurements
+quantity_used numeric(10,3) | unit text | cost numeric(10,4) | applied_at timestamptz | notes text | created_at
+```
+
 ### RLS
 Todas as tabelas têm RLS ativo. Cada usuário acessa somente seus próprios dados. Measurements são acessíveis via join com pools do mesmo usuário.
 
-### Trigger
-`trg_advance_task_due` — `BEFORE UPDATE` em `tasks`: quando `status` muda para `concluida`, recalcula `next_due` conforme a frequência e redefine `status = 'pendente'`.
+### Funções e Triggers
+- `trg_advance_task_due` — `BEFORE UPDATE` em `tasks`: quando `status` muda para `concluida`, recalcula `next_due` conforme a frequência e redefine `status = 'pendente'`.
+- `apply_product_usage` — RPC (Stored Procedure): valida posse do produto, verifica e debita estoque (se tracked) e insere log imutável na tabela `product_applications` de forma atômica e segura.
 
 ### Migrations
 ```
 supabase/migrations/001_initial_schema.sql   # Schema completo + RLS + trigger
 supabase/migrations/002_hardness_nullable.sql  # hardness DROP NOT NULL
 supabase/migrations/003_push_subscriptions.sql # Tabela de push subscriptions
+supabase/migrations/004_products.sql           # Tabela products de estoque
+supabase/migrations/005_product_dosage.sql     # Regras de dosagem personalizada (Fase 2)
+supabase/migrations/006_financial.sql          # Preços e log de aplicações (Fase 3)
 ```
 
 ---
@@ -257,10 +284,6 @@ Prioridade `urgent`: delta pH > 0.4; cloro < 0.5 ou > 5 mg/L.
 
 ---
 
-## Melhorias Futuras
+## Evolução do Projeto
 
-- Suporte a múltiplas piscinas por usuário
-- Upload de foto na medição (`image_url`)
-- Supabase Edge Function para disparar notificações automaticamente (substitui cron externo)
-- Testes E2E com Playwright
-- Deploy na Vercel com variáveis de ambiente configuradas
+Para informações completas de evolução técnica, visão de produto, e roadmap estruturado contendo a integração de cálculos químicos dinâmicos através dos produtos criados no inventário, consulte o documento **`ROADMAP.md`** na raiz do projeto.

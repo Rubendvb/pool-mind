@@ -7,6 +7,7 @@ PWA de controle químico e manutenção de piscinas. Registre medições, receba
 ## Funcionalidades
 
 - **Dashboard** — status geral da água com cards de parâmetros (pH, cloro, alcalinidade, dureza), recomendações de correção e prévia das próximas tarefas
+- **Produtos** — gestão do inventário de produtos químicos, com controle de estoque, categoria, validade e atributos ativos.
 - **Medições** — histórico completo com formulário de registro; campo de dureza opcional
 - **Tarefas** — checklist por categoria (piscina, jardim, casa) com frequência recorrente; ao concluir, o banco recalcula automaticamente a próxima data via trigger
 - **Insights** — gráficos de evolução dos parâmetros, relatório de consumo estimado de produtos com custo em R$, e configuração de notificações push
@@ -72,6 +73,9 @@ Execute os arquivos de migração no **SQL Editor** do Supabase, em ordem:
 supabase/migrations/001_initial_schema.sql
 supabase/migrations/002_hardness_nullable.sql
 supabase/migrations/003_push_subscriptions.sql
+supabase/migrations/004_products.sql
+supabase/migrations/005_product_dosage.sql
+supabase/migrations/006_financial.sql
 ```
 
 Em seguida, vá em **Authentication → URL Configuration** e adicione às Redirect URLs:
@@ -122,6 +126,7 @@ src/
 │   └── (app)/                      # Rotas protegidas (requer sessão)
 │       ├── layout.tsx              # Injeta BottomNav
 │       ├── page.tsx                # Dashboard com Suspense streaming
+│       ├── produtos/               # Gestão do inventário químico
 │       ├── medicoes/               # Histórico e registro de medições
 │       ├── tarefas/                # Lista e gestão de tarefas
 │       └── insights/               # Gráficos, custos e notificações
@@ -131,6 +136,7 @@ src/
 │   ├── layout/                     # BottomNav, Header, LogoutButton
 │   ├── dashboard/                  # ChemicalSection, TasksPreview, DosageCard, CreatePoolForm
 │   ├── measurements/               # NewMeasurementButton
+│   ├── products/                   # ProductItem, ProductFormButton, DeleteProductButton, etc.
 │   ├── tasks/                      # TaskItem, NewTaskButton, CompleteTaskButton
 │   ├── insights/                   # ParameterChart, ParameterChartClient, CostReport
 │   ├── push/                       # NotificationSetup
@@ -176,6 +182,8 @@ Calculadas em `src/lib/chemistry.ts` proporcionalmente ao volume:
 | Alcalinidade baixa | Bicarbonato de Sódio | 15g / 10.000L por 10 mg/L |
 
 Prioridade `urgent`: delta de pH > 0,4; cloro < 0,5 mg/L ou > 5 mg/L.
+
+> **Nota de Evolução:** As fórmulas descritas acima são **genéricas** (fallback). A plataforma está migrando para **Dosagem Personalizada** baseada no inventário real do usuário (Fase 2 do [ROADMAP.md](./ROADMAP.md)), onde cada cálculo de correção utilizará a concentração e a regra estipulada em cada produto cadastrado.
 
 ### Recorrência de tarefas
 
