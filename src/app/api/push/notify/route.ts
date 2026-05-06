@@ -1,19 +1,20 @@
 import { NextResponse } from "next/server";
-import webpush from "web-push";
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 export async function POST() {
-  if (
-    process.env.VAPID_SUBJECT &&
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
-    process.env.VAPID_PRIVATE_KEY
-  ) {
-    webpush.setVapidDetails(
-      process.env.VAPID_SUBJECT,
-      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-      process.env.VAPID_PRIVATE_KEY
-    );
+  const { default: webpush } = await import("web-push");
+
+  const subject = process.env.VAPID_SUBJECT;
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+
+  if (!subject || !publicKey || !privateKey) {
+    return NextResponse.json({ error: "VAPID não configurado" }, { status: 500 });
   }
+
+  webpush.setVapidDetails(subject, publicKey, privateKey);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

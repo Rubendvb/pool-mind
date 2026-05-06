@@ -60,6 +60,12 @@ export type ProductCategory =
 
 export type ProductUnit = "g" | "kg" | "ml" | "L";
 
+export type DosageEffectType =
+  | "ph_delta"
+  | "chlorine_ppm"
+  | "alkalinity_ppm"
+  | "hardness_ppm";
+
 export interface Product {
   id: string;
   user_id: string;
@@ -73,6 +79,12 @@ export interface Product {
   notes: string | null;
   is_active: boolean;
   created_at: string;
+  // Phase 2: custom dosage formula
+  // Formula: ceil((delta / effect_value) * reference_amount * (pool_liters / reference_liters))
+  dosage_reference_amount: number | null;
+  dosage_reference_liters: number | null;
+  dosage_effect_value: number | null;
+  dosage_effect_type: DosageEffectType | null;
 }
 
 export interface DosageRecommendation {

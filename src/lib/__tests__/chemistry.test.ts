@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildParameters, calcDosages, overallStatus } from "../chemistry";
-import type { Measurement } from "@/types";
+import type { Measurement, Product } from "@/types";
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 
@@ -13,6 +13,28 @@ function makeMeasurement(overrides: Partial<Measurement> = {}): Measurement {
     chlorine: 1.5,
     alkalinity: 100,
     hardness: 250,
+    ...overrides,
+  };
+}
+
+function makeProduct(overrides: Partial<Product> = {}): Product {
+  return {
+    id: "prod-1",
+    user_id: "user-1",
+    name: "Produto Teste",
+    category: "chlorine",
+    manufacturer: null,
+    concentration: null,
+    unit: "g",
+    quantity: null,
+    expiration_date: null,
+    notes: null,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    dosage_reference_amount: null,
+    dosage_reference_liters: null,
+    dosage_effect_value: null,
+    dosage_effect_type: null,
     ...overrides,
   };
 }
@@ -224,6 +246,97 @@ describe("calcDosages", () => {
         volume
       );
       expect(dosages.length).toBeGreaterThanOrEqual(3);
+    });
+  });
+
+  describe("correção de dureza", () => {
+    it("dureza baixa → recomenda Cloreto de Cálcio", () => {
+      const dosages = calcDosages(makeMeasurement({ hardness: 150 }), volume);
+      const rec = dosages.find((d) => d.product === "Cloreto de Cálcio");
+      expect(rec).toBeDefined();
+      expect(rec?.amount).toBeGreaterThan(0);
+      expect(rec?.unit).toBe("g");
+    });
+
+    it("dureza null → sem recomendação de dureza", () => {
+      const dosages = calcDosages(makeMeasurement({ hardness: null }), volume);
+      const rec = dosages.find((d) => d.product === "Cloreto de Cálcio");
+      expect(rec).toBeUndefined();
+    });
+  });
+
+  describe("fórmula customizada de produto (Fase 2)", () => {
+    it("produto com fórmula própria calcula dosagem exata para cloro", () => {
+      // 10g em 10.000L eleva 0.5 ppm → para elevar 0.5 ppm em 10.000L: 10g
+      const product = makeProduct({
+        name: "Cloro Custom",
+        category: "chlorine",
+        dosage_reference_amount: 10,
+        dosage_reference_liters: 10000,
+        dosage_effect_value: 0.5,
+        dosage_effect_type: "chlorine_ppm",
+      });
+      const m = makeMeasurement({ chlorine: 0.5 }); // delta = 0.5
+      const dosages = calcDosages(m, 10000, [product]);
+      const rec = dosages.find((d) => d.product === "Cloro Custom");
+      expect(rec).toBeDefined();
+      expect(rec?.amount).toBe(10); // ceil((0.5/0.5)*10*(10000/10000))
+    });
+
+    it("fórmula customizada é proporcional ao volume", () => {
+      const product = makeProduct({
+        name: "Cloro Custom",
+        category: "chlorine",
+        dosage_reference_amount: 10,
+        dosage_reference_liters: 10000,
+        dosage_effect_value: 0.5,
+        dosage_effect_type: "chlorine_ppm",
+      });
+      const m = makeMeasurement({ chlorine: 0.5 });
+      const dose10k = calcDosages(m, 10000, [product]).find((d) => d.product === "Cloro Custom")!;
+      const dose20k = calcDosages(m, 20000, [product]).find((d) => d.product === "Cloro Custom")!;
+      expect(dose20k.amount).toBe(dose10k.amount * 2);
+    });
+
+    it("produto com fórmula customizada de pH+", () => {
+      // 20g em 10.000L eleva pH em 0.2 → para elevar 0.2 em 10.000L: 20g
+      const product = makeProduct({
+        name: "pH+ Custom",
+        category: "ph_up",
+        dosage_reference_amount: 20,
+        dosage_reference_liters: 10000,
+        dosage_effect_value: 0.2,
+        dosage_effect_type: "ph_delta",
+      });
+      const m = makeMeasurement({ ph: 7.0 }); // delta = 0.2
+      const dosages = calcDosages(m, 10000, [product]);
+      const rec = dosages.find((d) => d.product === "pH+ Custom");
+      expect(rec?.amount).toBe(20);
+    });
+
+    it("produto sem fórmula customizada usa ajuste por concentração", () => {
+      // Cloro 45% (ref: 90%) → dose base dobra
+      const product = makeProduct({
+        name: "Cloro 45%",
+        category: "chlorine",
+        concentration: 45,
+      });
+      const m = makeMeasurement({ chlorine: 0.5 }); // delta = 0.5
+      // baseAmount = ceil((0.5/0.5)*10*(10000/10000)) = 10
+      // adjusted  = ceil(10 * (90/45)) = 20
+      const dosages = calcDosages(m, 10000, [product]);
+      const rec = dosages.find((d) => d.product === "Cloro 45%");
+      expect(rec?.amount).toBe(20);
+    });
+
+    it("produto sem fórmula e sem concentração usa quantidade genérica", () => {
+      const product = makeProduct({ name: "Cloro sem config", category: "chlorine" });
+      const m = makeMeasurement({ chlorine: 0.5 });
+      const generic = calcDosages(m, 10000);
+      const withProduct = calcDosages(m, 10000, [product]);
+      const recGeneric = generic.find((d) => d.product === "Triclorado 90%")!;
+      const recProduct = withProduct.find((d) => d.product === "Cloro sem config")!;
+      expect(recProduct.amount).toBe(recGeneric.amount);
     });
   });
 });

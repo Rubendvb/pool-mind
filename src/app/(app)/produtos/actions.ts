@@ -24,6 +24,10 @@ export async function addProduct(formData: FormData) {
     expiration_date: (formData.get("expiration_date") as string) || null,
     notes: (formData.get("notes") as string) || null,
     is_active: true,
+    dosage_reference_amount: parseOptionalNumber(formData.get("dosage_reference_amount") as string),
+    dosage_reference_liters: parseOptionalNumber(formData.get("dosage_reference_liters") as string),
+    dosage_effect_value: parseOptionalNumber(formData.get("dosage_effect_value") as string),
+    dosage_effect_type: (formData.get("dosage_effect_type") as string) || null,
   });
 
   if (error) return { error: error.message };
@@ -47,6 +51,10 @@ export async function updateProduct(id: string, formData: FormData) {
       quantity: parseOptionalNumber(formData.get("quantity") as string),
       expiration_date: (formData.get("expiration_date") as string) || null,
       notes: (formData.get("notes") as string) || null,
+      dosage_reference_amount: parseOptionalNumber(formData.get("dosage_reference_amount") as string),
+      dosage_reference_liters: parseOptionalNumber(formData.get("dosage_reference_liters") as string),
+      dosage_effect_value: parseOptionalNumber(formData.get("dosage_effect_value") as string),
+      dosage_effect_type: (formData.get("dosage_effect_type") as string) || null,
     })
     .eq("id", id);
 

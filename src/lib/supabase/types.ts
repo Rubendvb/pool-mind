@@ -17,6 +17,10 @@ export interface Database {
           notes: string | null;
           is_active: boolean;
           created_at: string;
+          dosage_reference_amount: number | null;
+          dosage_reference_liters: number | null;
+          dosage_effect_value: number | null;
+          dosage_effect_type: string | null;
         };
         Insert: {
           id?: string;
@@ -31,6 +35,10 @@ export interface Database {
           notes?: string | null;
           is_active?: boolean;
           created_at?: string;
+          dosage_reference_amount?: number | null;
+          dosage_reference_liters?: number | null;
+          dosage_effect_value?: number | null;
+          dosage_effect_type?: string | null;
         };
         Update: {
           name?: string;
@@ -42,6 +50,10 @@ export interface Database {
           expiration_date?: string | null;
           notes?: string | null;
           is_active?: boolean;
+          dosage_reference_amount?: number | null;
+          dosage_reference_liters?: number | null;
+          dosage_effect_value?: number | null;
+          dosage_effect_type?: string | null;
         };
         Relationships: [];
       };
