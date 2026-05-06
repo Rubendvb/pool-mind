@@ -1,10 +1,13 @@
+import { cache } from "react";
 import { createClient } from "./server";
 import type { Database } from "./types";
 
 type MeasurementInsert = Database["public"]["Tables"]["measurements"]["Insert"];
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 
-export async function getPool() {
+// cache() deduplica chamadas idênticas dentro do mesmo request —
+// getPool() pode ser chamado em vários Server Components sem custo extra.
+export const getPool = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("pools")
@@ -13,9 +16,9 @@ export async function getPool() {
     .limit(1)
     .single();
   return data;
-}
+});
 
-export async function getMeasurements(poolId: string, limit = 10) {
+export const getMeasurements = cache(async (poolId: string, limit = 10) => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("measurements")
@@ -24,22 +27,9 @@ export async function getMeasurements(poolId: string, limit = 10) {
     .order("measured_at", { ascending: false })
     .limit(limit);
   return data ?? [];
-}
+});
 
-export async function insertMeasurement(
-  measurement: Omit<MeasurementInsert, "id" | "measured_at">
-) {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("measurements")
-    .insert(measurement)
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
-}
-
-export async function getTasks() {
+export const getTasks = cache(async () => {
   const supabase = await createClient();
   const today = new Date().toISOString().split("T")[0];
 
@@ -55,7 +45,7 @@ export async function getTasks() {
         ? ("atrasada" as const)
         : t.status,
   }));
-}
+});
 
 export async function completeTask(taskId: string) {
   const supabase = await createClient();
@@ -64,6 +54,19 @@ export async function completeTask(taskId: string) {
     .update({ status: "concluida" })
     .eq("id", taskId);
   if (error) throw error;
+}
+
+export async function insertMeasurement(
+  measurement: Omit<MeasurementInsert, "id" | "measured_at">
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("measurements")
+    .insert(measurement)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
 }
 
 export async function insertTask(
