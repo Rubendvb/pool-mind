@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { addProduct, updateProduct } from "@/app/(app)/produtos/actions";
-import type { Product, ProductCategory, ProductUnit } from "@/types";
+import type { Product, ProductCategory, ProductUnit, DosageEffectType } from "@/types";
 
 const CATEGORIES: { value: ProductCategory; label: string }[] = [
   { value: "chlorine", label: "Cloro" },
@@ -18,6 +18,21 @@ const CATEGORIES: { value: ProductCategory; label: string }[] = [
 
 const UNITS: ProductUnit[] = ["g", "kg", "ml", "L"];
 
+const EFFECT_TYPES: { value: DosageEffectType; label: string }[] = [
+  { value: "chlorine_ppm", label: "Cloro (mg/L)" },
+  { value: "ph_delta", label: "Delta de pH" },
+  { value: "alkalinity_ppm", label: "Alcalinidade (mg/L)" },
+  { value: "hardness_ppm", label: "Dureza (mg/L)" },
+];
+
+const DEFAULT_EFFECT_TYPE: Partial<Record<ProductCategory, DosageEffectType>> = {
+  chlorine: "chlorine_ppm",
+  ph_up: "ph_delta",
+  ph_down: "ph_delta",
+  alkalinity_up: "alkalinity_ppm",
+  hardness_up: "hardness_ppm",
+};
+
 const selectClass =
   "glass px-3 py-2.5 text-white outline-none focus:ring-1 focus:ring-ocean-500 rounded-xl text-sm bg-transparent appearance-none";
 const inputClass =
@@ -32,6 +47,10 @@ export function ProductFormButton({ product }: Props) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDosage, setShowDosage] = useState(
+    !!(product?.dosage_reference_amount || product?.dosage_effect_value)
+  );
+  const [category, setCategory] = useState<ProductCategory>(product?.category ?? "other");
   const isEdit = !!product;
 
   function handleOpen() {
@@ -101,7 +120,13 @@ export function ProductFormButton({ product }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <label className={labelClass}>Categoria *</label>
-              <select name="category" required defaultValue={product?.category ?? "other"} className={selectClass}>
+              <select
+                name="category"
+                required
+                value={category}
+                onChange={(e) => setCategory(e.target.value as ProductCategory)}
+                className={selectClass}
+              >
                 {CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value} style={{ background: "#03045e" }}>
                     {c.label}
@@ -183,6 +208,81 @@ export function ProductFormButton({ product }: Props) {
               placeholder="Ex: Guardar em local fresco e seco"
               className={inputClass}
             />
+          </div>
+
+          {/* Dosagem personalizada */}
+          <div className="flex flex-col gap-2 pt-1 border-t border-white/10">
+            <button
+              type="button"
+              onClick={() => setShowDosage((v) => !v)}
+              className="flex items-center justify-between text-xs font-semibold text-ocean-300 hover:text-white transition-colors"
+            >
+              <span>Dosagem personalizada</span>
+              <span className="text-ocean-400">{showDosage ? "▲ ocultar" : "▼ configurar"}</span>
+            </button>
+
+            {showDosage && (
+              <div className="flex flex-col gap-3">
+                <p className="text-xs text-ocean-400/70 leading-relaxed">
+                  Ex: 10 g deste produto em 10.000 L eleva o cloro em 0,5 mg/L → preencha: ref. 10, vol. 10.000, efeito 0,5.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className={labelClass}>Qtd. referência</label>
+                    <input
+                      name="dosage_reference_amount"
+                      type="number"
+                      min="0"
+                      step="0.001"
+                      defaultValue={product?.dosage_reference_amount ?? ""}
+                      placeholder="Ex: 10"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className={labelClass}>Volume ref. (L)</label>
+                    <input
+                      name="dosage_reference_liters"
+                      type="number"
+                      min="0"
+                      step="1"
+                      defaultValue={product?.dosage_reference_liters ?? ""}
+                      placeholder="Ex: 10000"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className={labelClass}>Efeito por ref.</label>
+                    <input
+                      name="dosage_effect_value"
+                      type="number"
+                      min="0"
+                      step="0.0001"
+                      defaultValue={product?.dosage_effect_value ?? ""}
+                      placeholder="Ex: 0.5"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className={labelClass}>Tipo de efeito</label>
+                    <select
+                      name="dosage_effect_type"
+                      defaultValue={product?.dosage_effect_type ?? DEFAULT_EFFECT_TYPE[category] ?? ""}
+                      className={selectClass}
+                    >
+                      <option value="" style={{ background: "#03045e" }}>—</option>
+                      {EFFECT_TYPES.map((e) => (
+                        <option key={e.value} value={e.value} style={{ background: "#03045e" }}>
+                          {e.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {error && (
