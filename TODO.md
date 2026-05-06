@@ -4,7 +4,7 @@
 - [x] Inicialização do Next.js (App Router + TypeScript)
 - [x] Configuração do Tailwind v4 com tema azul oceano
 - [x] Glassmorphism, variáveis de cor e design premium
-- [ ] Configuração do PWA (next-pwa ou serwist) — manifest, service worker, ícones
+- [x] Configuração do PWA — manifest.json, service worker global, ícones
 - [x] Integração do Supabase para Autenticação (login/logout, sessão)
 
 ## Fase 2: Banco de Dados — Schema Supabase
@@ -29,7 +29,7 @@
 - [x] Alertas visuais de perigo/atenção/ideal
 - [x] Recomendações de correção com prioridade (urgente/em breve)
 - [x] Formulário de nova medição (com validação e feedback)
-- [ ] Gráficos de evolução dos parâmetros ao longo do tempo (ex: recharts ou chart.js)
+- [x] Gráficos de evolução dos parâmetros ao longo do tempo (recharts)
 
 ## Fase 4: Agenda e Recorrência
 - [x] Listagem de tarefas por categoria (piscina, jardim, casa)
@@ -39,11 +39,13 @@
 - [x] Formulário de nova tarefa com seleção de frequência
 
 ## Fase 5: Insights e Notificações Push
-- [ ] Relatório de consumo de produtos químicos (quantidade e custo estimado)
-- [ ] Gráfico de evolução de custos por período
-- [ ] Service Worker para notificações Push (lembretes de medição e tarefas)
-- [ ] Configuração de alertas personalizados
+- [x] Relatório de consumo de produtos químicos (quantidade e custo estimado)
+- [x] Página de Insights com resumo estatístico e gráficos de evolução
+- [x] Service Worker para notificações Push (lembretes de medição e tarefas)
+- [x] Configuração de alertas — ativar/desativar notificações na página Insights
+- [x] API `/api/push/notify` para disparar notificações (tarefas atrasadas + medição vencida)
+- [x] PWA: manifest.json + ícones gerados (icon-192.png, icon-512.png)
 
 ## Testes
-- [ ] Testes unitários para `chemistry.ts` (dosagens, status dos parâmetros)
-- [ ] Testes de integração para fluxo de nova medição → recomendação
+- [x] Testes unitários para `chemistry.ts` (dosagens, status dos parâmetros)
+- [x] Testes de integração para fluxo de nova medição → recomendação

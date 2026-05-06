@@ -1,36 +1,198 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pool Mind
 
-## Getting Started
+PWA de controle químico e manutenção de piscinas. Registre medições, receba diagnósticos automáticos com dosagens calculadas por volume e gerencie tarefas recorrentes de manutenção.
 
-First, run the development server:
+---
+
+## Funcionalidades
+
+- **Dashboard** — status geral da água com cards de parâmetros (pH, cloro, alcalinidade, dureza), recomendações de correção e prévia das próximas tarefas
+- **Medições** — histórico completo com formulário de registro; campo de dureza opcional
+- **Tarefas** — checklist por categoria (piscina, jardim, casa) com frequência recorrente; ao concluir, o banco recalcula automaticamente a próxima data via trigger
+- **Insights** — gráficos de evolução dos parâmetros, relatório de consumo estimado de produtos com custo em R$, e configuração de notificações push
+- **Autenticação** — login e cadastro por e-mail/senha com confirmação; sessão gerenciada via cookie
+- **PWA** — instalável no celular, com service worker e manifest configurados
+
+---
+
+## Stack
+
+| Camada | Tecnologia |
+|---|---|
+| Framework | Next.js 16 — App Router, Server Components, Server Actions |
+| Linguagem | TypeScript 5 (strict) |
+| Estilo | Tailwind CSS v4 — configuração CSS-first com `@theme` |
+| Banco | Supabase (PostgreSQL) com Row Level Security |
+| Auth | Supabase Auth — e-mail/senha |
+| Gráficos | Recharts |
+| Push | Web Push API + VAPID |
+| Testes | Vitest |
+
+---
+
+## Pré-requisitos
+
+- Node.js 18+
+- Conta no [Supabase](https://supabase.com)
+
+---
+
+## Instalação
+
+```bash
+git clone <repo>
+cd pool-mind
+npm install
+```
+
+### Variáveis de ambiente
+
+Crie o arquivo `.env` na raiz com:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://<projeto>.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<anon-key>
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=<vapid-public>
+VAPID_PRIVATE_KEY=<vapid-private>
+VAPID_SUBJECT=mailto:<seu-email>
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+Para gerar as chaves VAPID:
+
+```bash
+node -e "const wp=require('web-push'); const k=wp.generateVAPIDKeys(); console.log(k)"
+```
+
+### Banco de dados
+
+Execute os arquivos de migração no **SQL Editor** do Supabase, em ordem:
+
+```
+supabase/migrations/001_initial_schema.sql
+supabase/migrations/002_hardness_nullable.sql
+supabase/migrations/003_push_subscriptions.sql
+```
+
+Em seguida, vá em **Authentication → URL Configuration** e adicione às Redirect URLs:
+
+```
+http://localhost:3000/auth/callback
+```
+
+---
+
+## Rodando localmente
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Scripts
 
-## Learn More
+| Comando | Descrição |
+|---|---|
+| `npm run dev` | Servidor de desenvolvimento |
+| `npm run build` | Build de produção |
+| `npm start` | Servidor de produção |
+| `npm test` | Executa os testes (Vitest) |
+| `npm run test:watch` | Testes em modo watch |
+| `npm run test:coverage` | Relatório de cobertura |
+| `npm run lint` | ESLint |
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Estrutura de pastas
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── app/
+│   ├── layout.tsx                  # Root layout — registra o service worker
+│   ├── globals.css                 # Tema, paleta ocean-*, glassmorphism
+│   ├── middleware.ts               # Proteção de rotas; redireciona para /login
+│   ├── auth/callback/route.ts      # Callback de confirmação de e-mail
+│   ├── login/                      # Página pública de autenticação
+│   ├── api/push/                   # API de push notifications
+│   │   ├── subscribe/route.ts      # Salva/remove subscription
+│   │   └── notify/route.ts         # Dispara notificações pendentes
+│   └── (app)/                      # Rotas protegidas (requer sessão)
+│       ├── layout.tsx              # Injeta BottomNav
+│       ├── page.tsx                # Dashboard com Suspense streaming
+│       ├── medicoes/               # Histórico e registro de medições
+│       ├── tarefas/                # Lista e gestão de tarefas
+│       └── insights/               # Gráficos, custos e notificações
+│
+├── components/
+│   ├── ui/                         # Modal, ParameterCard, StatusBadge, Skeleton
+│   ├── layout/                     # BottomNav, Header, LogoutButton
+│   ├── dashboard/                  # ChemicalSection, TasksPreview, DosageCard, CreatePoolForm
+│   ├── measurements/               # NewMeasurementButton
+│   ├── tasks/                      # TaskItem, NewTaskButton, CompleteTaskButton
+│   ├── insights/                   # ParameterChart, ParameterChartClient, CostReport
+│   ├── push/                       # NotificationSetup
+│   └── pwa/                        # ServiceWorkerRegister
+│
+├── lib/
+│   ├── chemistry.ts                # buildParameters, calcDosages, overallStatus
+│   ├── mocks.ts                    # Dados estáticos para desenvolvimento
+│   └── supabase/
+│       ├── client.ts               # createBrowserClient (Client Components)
+│       ├── server.ts               # createServerClient com cookies (Server Components)
+│       ├── queries.ts              # Queries com React cache()
+│       └── types.ts                # Tipos TypeScript do schema
+│
+└── types/
+    └── index.ts                    # Pool, Measurement, Task, ChemicalParameter, DosageRecommendation
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Regras de negócio
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Parâmetros químicos
+
+| Parâmetro | Faixa ideal | Unidade |
+|---|---|---|
+| pH | 7.2 – 7.6 | — |
+| Cloro livre | 1.0 – 3.0 | mg/L |
+| Alcalinidade | 80 – 120 | mg/L |
+| Dureza | 200 – 400 | mg/L (opcional) |
+
+**Status:** `ok` dentro da faixa; `warning` dentro de ±25% da amplitude; `danger` fora desse limite. Dureza `null` → `unknown`. Status geral: `danger` > `warning` > `ok`.
+
+### Dosagens
+
+Calculadas em `src/lib/chemistry.ts` proporcionalmente ao volume:
+
+| Problema | Produto | Referência |
+|---|---|---|
+| pH baixo | pH+ Barrilha | 20g / 10.000L por 0,2 de delta |
+| pH alto | pH− Ácido Muriático | 20ml / 10.000L por 0,2 de delta |
+| Cloro baixo | Triclorado 90% | 10g / 10.000L por 0,5 mg/L |
+| Alcalinidade baixa | Bicarbonato de Sódio | 15g / 10.000L por 10 mg/L |
+
+Prioridade `urgent`: delta de pH > 0,4; cloro < 0,5 mg/L ou > 5 mg/L.
+
+### Recorrência de tarefas
+
+O trigger `trg_advance_task_due` recalcula `next_due` e redefine `status = 'pendente'` automaticamente ao marcar uma tarefa como `concluida`. Tarefas com `next_due < hoje` são marcadas `atrasada` em memória na query `getTasks()`.
+
+### Notificações push
+
+`POST /api/push/notify` verifica, para o usuário autenticado: tarefas com `next_due <= hoje` e última medição há ≥ 7 dias. Requer subscriptions salvas via `POST /api/push/subscribe`.
+
+---
+
+## Padrões do projeto
+
+**Server vs. Client Components:** páginas são Server Components assíncronos; `"use client"` apenas para estado ou eventos do browser; Server Actions ficam em `actions.ts` junto da rota.
+
+**Cache:** funções de leitura usam `cache()` do React para deduplicação por request; mutações chamam `revalidatePath()`; dashboard usa Suspense para streaming paralelo.
+
+**Tailwind v4:** sem `tailwind.config.js`; configuração via `@theme` em `globals.css`; classes utilitárias `.glass`, `.glass-strong` e `.nav-bar`.
+
+**Tipos:** `src/types/index.ts` para tipos da aplicação (snake_case, alinhados com o banco); `src/lib/supabase/types.ts` para o schema do Supabase (mantidos manualmente).

@@ -1,6 +1,6 @@
-# Pool Mind — Contexto do Projeto
+# Pool Mind — Context
 
-PWA de controle químico e manutenção de piscinas. Permite registrar medições dos parâmetros da água, receber diagnósticos automáticos com recomendações de dosagem de produtos, e gerenciar tarefas recorrentes de manutenção (piscina, jardim, casa).
+PWA pessoal de controle químico e manutenção de piscinas. O usuário registra medições dos parâmetros da água, recebe diagnóstico automático com recomendações de dosagem calculadas pelo volume da piscina, e gerencia tarefas recorrentes de manutenção (piscina, jardim, casa).
 
 ---
 
@@ -9,158 +9,258 @@ PWA de controle químico e manutenção de piscinas. Permite registrar mediçõe
 | Camada | Tecnologia |
 |---|---|
 | Framework | Next.js 16 — App Router, Server Components, Server Actions |
-| Linguagem | TypeScript (strict) |
-| Estilo | Tailwind CSS v4 — CSS-first com `@theme` |
+| Linguagem | TypeScript 5 (strict) |
+| Estilo | Tailwind CSS v4 — CSS-first, `@theme` em `globals.css`, sem `tailwind.config.js` |
 | Banco | Supabase (PostgreSQL) com Row Level Security |
-| Auth | Supabase Auth — e-mail/senha com callback em `/auth/callback` |
-| Deploy | — (não configurado ainda) |
+| Auth | Supabase Auth — e-mail/senha, callback em `/auth/callback` |
+| Gráficos | Recharts (lazy-loaded via `next/dynamic` em Client Component) |
+| Push | Web Push API + VAPID (`web-push`) |
+| Testes | Vitest |
 
 ---
 
 ## Variáveis de Ambiente
 
-```
+```env
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-NEXT_PUBLIC_SITE_URL=http://localhost:3000   # usado no emailRedirectTo do signup
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+VAPID_SUBJECT=mailto:...
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 ---
 
-## Estrutura de Pastas
+## Estrutura de Arquivos
 
 ```
 src/
 ├── app/
-│   ├── layout.tsx                  # Root layout (sem BottomNav)
-│   ├── globals.css                 # Tema: paleta ocean-*, status-*, glassmorphism
-│   ├── middleware.ts               # Protege todas as rotas; redireciona para /login
+│   ├── layout.tsx                  # Root layout — sem BottomNav; monta ServiceWorkerRegister
+│   ├── globals.css                 # Paleta ocean-*, status-*, .glass, .glass-strong, .nav-bar
+│   ├── middleware.ts               # Protege todas as rotas; redireciona /login se sem sessão
 │   ├── auth/callback/route.ts      # Troca code por sessão após confirmação de e-mail
 │   ├── login/
-│   │   ├── page.tsx                # Página pública de login/cadastro
-│   │   ├── LoginForm.tsx           # Client Component com toggle login/signup
+│   │   ├── page.tsx                # Página pública
+│   │   ├── LoginForm.tsx           # Client Component — toggle login/signup
 │   │   └── actions.ts              # signInWithEmail, signUpWithEmail, signOut
-│   └── (app)/                      # Route group — rotas protegidas com BottomNav
+│   ├── api/push/
+│   │   ├── subscribe/route.ts      # POST salva subscription; DELETE remove
+│   │   └── notify/route.ts         # POST verifica tarefas/medições e envia push
+│   └── (app)/                      # Route group — requer sessão; tem BottomNav
 │       ├── layout.tsx              # Injeta <BottomNav />
-│       ├── loading.tsx             # Skeleton do dashboard
-│       ├── page.tsx                # Dashboard (Suspense streaming)
+│       ├── loading.tsx             # DashboardSkeleton
+│       ├── page.tsx                # Dashboard — Suspense com ChemicalSection + TasksPreview
 │       ├── actions.ts              # createPool (Server Action)
 │       ├── medicoes/
-│       │   ├── page.tsx            # Histórico de medições
+│       │   ├── page.tsx            # Histórico (Server Component async)
 │       │   ├── loading.tsx
 │       │   └── actions.ts          # addMeasurement
-│       └── tarefas/
-│           ├── page.tsx            # Lista de tarefas por categoria
-│           ├── loading.tsx
-│           └── actions.ts          # addTask, completeTask
+│       ├── tarefas/
+│       │   ├── page.tsx            # Lista por categoria (Server Component async)
+│       │   ├── loading.tsx
+│       │   └── actions.ts          # addTask, completeTask
+│       └── insights/
+│           ├── page.tsx            # Resumo, gráficos, custos, notificações
+│           └── loading.tsx
 │
 ├── components/
 │   ├── ui/
-│   │   ├── Modal.tsx               # Bottom-sheet modal centralizado, z-[60]
-│   │   ├── ParameterCard.tsx       # Card de parâmetro com barra de progresso
+│   │   ├── Modal.tsx               # Centralizado, z-[60], scrollável, fecha com Esc
+│   │   ├── ParameterCard.tsx       # Card com barra de progresso relativa ao ideal
 │   │   ├── Skeleton.tsx            # DashboardSkeleton, ListSkeleton
 │   │   └── StatusBadge.tsx         # <StatusBadge> e <StatusDot> por ParameterStatus
 │   ├── layout/
-│   │   ├── BottomNav.tsx           # Nav fixa com links + LogoutButton
-│   │   ├── Header.tsx              # Título + subtítulo + action slot
-│   │   └── LogoutButton.tsx        # Chama signOut via form action
+│   │   ├── BottomNav.tsx           # 4 abas: Dashboard, Medições, Tarefas, Insights
+│   │   ├── Header.tsx              # title + subtitle + action slot
+│   │   └── LogoutButton.tsx        # form action → signOut
 │   ├── dashboard/
-│   │   ├── ChemicalSection.tsx     # Server Component — busca última medição e renderiza parâmetros + dosagens
-│   │   ├── TasksPreview.tsx        # Server Component — busca tarefas urgentes
+│   │   ├── ChemicalSection.tsx     # Server Component — última medição + parâmetros + dosagens
+│   │   ├── TasksPreview.tsx        # Server Component — 3 tarefas mais urgentes
 │   │   ├── CreatePoolForm.tsx      # Client Component — onboarding de nova piscina
-│   │   ├── DosageCard.tsx          # Lista de recomendações de correção
-│   │   └── OverallStatusCard.tsx   # Status geral da água (ok/warning/danger/unknown)
+│   │   ├── DosageCard.tsx          # Lista de recomendações com prioridade
+│   │   └── OverallStatusCard.tsx   # Banner de status geral (ok/warning/danger/unknown)
 │   ├── measurements/
-│   │   └── NewMeasurementButton.tsx  # Client Component — abre Modal com formulário
-│   └── tasks/
-│       ├── TaskItem.tsx            # Item de tarefa com CompleteTaskButton
-│       ├── CompleteTaskButton.tsx  # Client Component — chama completeTask
-│       └── NewTaskButton.tsx       # Client Component — abre Modal com formulário
+│   │   └── NewMeasurementButton.tsx  # Abre Modal com form; chama addMeasurement
+│   ├── tasks/
+│   │   ├── TaskItem.tsx            # Item com ícone por categoria + CompleteTaskButton
+│   │   ├── CompleteTaskButton.tsx  # Chama completeTask; spinner durante pending
+│   │   └── NewTaskButton.tsx       # Abre Modal com form; chama addTask
+│   ├── insights/
+│   │   ├── ParameterChart.tsx      # Recharts LineChart (Client Component puro)
+│   │   ├── ParameterChartClient.tsx  # Wrapper com next/dynamic ssr:false
+│   │   └── CostReport.tsx          # Calcula custo estimado a partir do histórico
+│   ├── push/
+│   │   └── NotificationSetup.tsx   # Solicita permissão; salva/remove subscription
+│   └── pwa/
+│       └── ServiceWorkerRegister.tsx  # Registra /sw.js no useEffect (montado no root layout)
 │
 ├── lib/
 │   ├── chemistry.ts                # buildParameters(), calcDosages(), overallStatus()
-│   ├── mocks.ts                    # Dados falsos (não usados em produção, úteis para testes)
+│   ├── mocks.ts                    # Dados estáticos — não usados em produção
 │   └── supabase/
-│       ├── client.ts               # createBrowserClient — uso em Client Components
-│       ├── server.ts               # createServerClient com cookies — uso em Server Components
-│       ├── queries.ts              # getPool, getMeasurements, getTasks (com React cache())
-│       └── types.ts                # Tipos TypeScript do schema (Database)
+│       ├── client.ts               # createBrowserClient<Database> — Client Components
+│       ├── server.ts               # createServerClient<Database> com cookies — Server Components
+│       ├── queries.ts              # Leituras com cache(); mutações com revalidatePath()
+│       └── types.ts                # Database interface completa (mantida manualmente)
 │
-└── types/
-    └── index.ts                    # Pool, Measurement, Task, ChemicalParameter, DosageRecommendation
+├── types/
+│   └── index.ts                    # Pool, Measurement, Task, ChemicalParameter, DosageRecommendation
+│
+└── middleware.ts                   # Fora de src/app — intercepta todas as rotas
 ```
 
 ---
 
-## Banco de Dados (Supabase)
+## Banco de Dados
 
 ### Tabelas
 
-**`pools`** — uma por usuário (por ora)
-- `id`, `user_id`, `name`, `volume` (litros), `type` (vinil/fibra/alvenaria), `created_at`
+**`pools`**
+```
+id uuid PK | user_id uuid FK auth.users | name text | volume integer | type enum | created_at
+```
 
 **`measurements`**
-- `id`, `pool_id`, `ph`, `chlorine`, `alkalinity`, `hardness` (nullable), `notes`, `image_url`, `measured_at`
+```
+id uuid PK | pool_id uuid FK pools | ph numeric(4,2) | chlorine numeric(5,2) | alkalinity integer
+hardness integer NULL | notes text NULL | image_url text NULL | measured_at timestamptz
+```
 
 **`tasks`**
-- `id`, `user_id`, `title`, `category` (piscina/casa/jardim), `frequency` (diaria/semanal/quinzenal/mensal), `next_due` (date), `status` (pendente/concluida/atrasada), `created_at`
+```
+id uuid PK | user_id uuid FK auth.users | title text | category enum | frequency enum
+next_due date | status enum | created_at
+```
+
+**`push_subscriptions`**
+```
+id uuid PK | user_id uuid FK auth.users | endpoint text UNIQUE | p256dh text | auth text | created_at
+```
 
 ### RLS
-Todas as tabelas têm RLS ativo. Cada usuário só acessa os próprios dados.
+Todas as tabelas têm RLS ativo. Cada usuário acessa somente seus próprios dados. Measurements são acessíveis via join com pools do mesmo usuário.
 
 ### Trigger
-`trg_advance_task_due` — ao marcar uma tarefa como `concluida`, recalcula `next_due` e redefine `status = 'pendente'` automaticamente.
+`trg_advance_task_due` — `BEFORE UPDATE` em `tasks`: quando `status` muda para `concluida`, recalcula `next_due` conforme a frequência e redefine `status = 'pendente'`.
 
 ### Migrations
-- `supabase/migrations/001_initial_schema.sql` — schema completo + RLS + trigger
-- `supabase/migrations/002_hardness_nullable.sql` — torna `hardness` nullable
+```
+supabase/migrations/001_initial_schema.sql   # Schema completo + RLS + trigger
+supabase/migrations/002_hardness_nullable.sql  # hardness DROP NOT NULL
+supabase/migrations/003_push_subscriptions.sql # Tabela de push subscriptions
+```
 
 ---
 
-## Lógica Química (`src/lib/chemistry.ts`)
+## Lógica Química
 
-Faixas ideais:
-- pH: 7.2 – 7.6
-- Cloro livre: 1.0 – 3.0 mg/L
-- Alcalinidade: 80 – 120 mg/L
-- Dureza: 200 – 400 mg/L
+Arquivo: `src/lib/chemistry.ts`
 
-Status por parâmetro: `ok` / `warning` (±25% da faixa) / `danger` / `unknown` (valor null).
+### Faixas ideais
+```typescript
+ph:         { min: 7.2, max: 7.6 }
+chlorine:   { min: 1.0, max: 3.0 }  // mg/L
+alkalinity: { min: 80,  max: 120 }  // mg/L
+hardness:   { min: 200, max: 400 }  // mg/L
+```
 
-Dosagens calculadas por volume da piscina:
-- pH baixo → pH+ (Barrilha) em gramas
-- pH alto → pH- (Ácido Muriático) em ml
-- Cloro baixo → Triclorado 90% em gramas
-- Alcalinidade baixa → Bicarbonato de Sódio em gramas
+### Status por parâmetro
+- `ok` — dentro da faixa ideal
+- `warning` — dentro de ±25% da amplitude da faixa
+- `danger` — fora do intervalo de tolerância
+- `unknown` — valor `null` (apenas hardness)
+
+### Dosagens por produto
+| Produto | Gatilho | Fórmula |
+|---|---|---|
+| pH+ (Barrilha) | ph < 7.2 | `ceil((delta/0.2) * 20 * (vol/10000))` g |
+| pH− (Ácido Muriático) | ph > 7.6 | `ceil((delta/0.2) * 20 * (vol/10000))` ml |
+| Triclorado 90% | chlorine < 1.0 | `ceil((delta/0.5) * 10 * (vol/10000))` g |
+| Bicarbonato de Sódio | alkalinity < 80 | `ceil((delta/10) * 15 * (vol/10000))` g |
+
+Prioridade `urgent`: delta pH > 0.4; cloro < 0.5 ou > 5 mg/L.
+
+---
+
+## Fluxos Principais
+
+### Login / Cadastro
+1. Usuário acessa qualquer rota → middleware verifica sessão → redireciona `/login` se ausente
+2. Cadastro: `signUpWithEmail` envia e-mail de confirmação com `emailRedirectTo` apontando para `/auth/callback`
+3. Confirmação: `/auth/callback/route.ts` troca o `code` por sessão e redireciona para `/`
+4. Login direto: `signInWithPassword` → redirect `/`
+
+### Primeira vez (onboarding)
+1. Usuário logado sem pool → dashboard mostra `CreatePoolForm`
+2. Pool criado → `revalidatePath('/')` → dashboard carrega normalmente com estado vazio
+
+### Registrar medição
+1. Botão "+ Nova" na página Medições → abre `Modal`
+2. Formulário com pH, cloro, alcalinidade obrigatórios; dureza opcional
+3. Submit → Server Action `addMeasurement` → insert no Supabase → `revalidatePath('/medicoes')` e `revalidatePath('/')`
+4. Modal fecha, lista atualiza, dashboard reflete nova medição
+
+### Concluir tarefa
+1. Botão `✓` em qualquer `TaskItem` → Client Component `CompleteTaskButton`
+2. Chama Server Action `completeTask(taskId)` → `UPDATE status = 'concluida'`
+3. Trigger do banco recalcula `next_due` e redefine `status = 'pendente'`
+4. `revalidatePath('/tarefas')` e `revalidatePath('/')` → UI atualiza
+
+### Push Notifications
+1. Página Insights → `NotificationSetup` → solicita permissão do browser
+2. Se concedida → `reg.pushManager.subscribe()` com VAPID público → `POST /api/push/subscribe`
+3. Subscription salva em `push_subscriptions`
+4. `POST /api/push/notify` (chamado manualmente ou via cron) → verifica tarefas atrasadas e medições vencidas → envia push via `web-push`
+5. Service worker (`/sw.js`) exibe a notificação; ao clicar, abre a rota correspondente
 
 ---
 
 ## Padrões e Convenções
 
-**Server vs Client:**
-- Páginas são Server Components assíncronos por padrão
-- Só usar `"use client"` quando há estado, eventos ou hooks do browser
-- Server Actions ficam em `actions.ts` junto da página que as usa
+### Server vs Client
+- Páginas: Server Components assíncronos (`async function Page()`)
+- Formulários com estado: Client Components que chamam Server Actions
+- Server Actions em `actions.ts` na pasta da rota que as usa
+- Nunca chamar `createClient()` do browser em código server-side
 
-**Queries:**
-- Sempre via `src/lib/supabase/queries.ts`
-- Funções de leitura usam `cache()` do React para deduplicação por request
-- Mutações (insert/update) chamam `revalidatePath()` para invalidar o cache
+### Queries
+- `getPool`, `getMeasurements`, `getTasks` — wrappadas em `cache()` do React para deduplicação no mesmo request
+- Mutações (`insert`, `update`) não usam cache; sempre chamam `revalidatePath()`
+- Dashboard usa `Promise.all` via Suspense para paralelizar `ChemicalSection` e `TasksPreview`
 
-**Tailwind v4:**
-- Cores customizadas definidas em `globals.css` com `@theme { --color-ocean-* }`
-- Classes utilitárias: `.glass` e `.glass-strong` para glassmorphism
-- Não há `tailwind.config.js` — configuração é toda via CSS
+### Componentes
+- Modais: sempre usar `<Modal>` de `src/components/ui/Modal.tsx` (z-[60], acima do nav)
+- Status visual: sempre usar `<StatusBadge>` ou `<StatusDot>` de `StatusBadge.tsx`
+- Skeletons: `DashboardSkeleton` para `/`, `ListSkeleton` para listas
 
-**Tipos:**
-- Tipos da app em `src/types/index.ts` (snake_case, alinhados com o schema do banco)
-- Tipos gerados do Supabase em `src/lib/supabase/types.ts` (mantidos manualmente)
+### Tailwind v4
+- Cores customizadas definidas em `globals.css` → `@theme { --color-ocean-* }`
+- Classes CSS customizadas (`.glass`, `.glass-strong`, `.nav-bar`) também em `globals.css`
+- Não criar `tailwind.config.js`
+
+### Tipos
+- Sempre manter `src/lib/supabase/types.ts` sincronizado com as migrations
+- Campos nullable no banco → `T | null` nos tipos TypeScript
+- Tipos da aplicação em `src/types/index.ts` usam snake_case para alinhar com o banco
 
 ---
 
-## O que está pendente (TODO.md)
+## Limitações Conhecidas
 
-- [ ] Gráficos de evolução dos parâmetros ao longo do tempo
-- [ ] PWA: manifest, service worker, ícones
-- [ ] Fase 5: relatórios de consumo, notificações push
-- [ ] Testes unitários para `chemistry.ts`
+- **Um pool por usuário** — `getPool()` busca o primeiro por `created_at`; não há suporte a múltiplas piscinas
+- **Custo estimado** — calculado retrospectivamente das medições; não rastreia aplicações reais de produto
+- **Ícones PWA** — gerados programaticamente com fundo gradiente e letra "P"; substituir por design profissional
+- **Notificações** — o endpoint `/api/push/notify` requer chamada manual ou cron externo; não há agendamento interno
+- **Dureza** — parâmetro opcional; quando `null`, não gera recomendações de correção
+
+---
+
+## Melhorias Futuras
+
+- Suporte a múltiplas piscinas por usuário
+- Upload de foto na medição (`image_url`)
+- Supabase Edge Function para disparar notificações automaticamente (substitui cron externo)
+- Testes E2E com Playwright
+- Deploy na Vercel com variáveis de ambiente configuradas

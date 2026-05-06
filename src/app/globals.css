@@ -59,6 +59,14 @@ body {
   border-radius: 1rem;
 }
 
+/* Bottom navigation */
+.nav-bar {
+  background: rgba(2 20 80 / 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(72 202 228 / 0.15);
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }

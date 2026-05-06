@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
+import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" className={`${geist.variable} h-full`} suppressHydrationWarning>
       <body className="min-h-dvh">
         {children}
+        <ServiceWorkerRegister />
       </body>
     </html>
   );
