@@ -1,0 +1,85 @@
+import { createClient } from "./server";
+import type { Database } from "./types";
+
+type MeasurementInsert = Database["public"]["Tables"]["measurements"]["Insert"];
+type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
+
+export async function getPool() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("pools")
+    .select("*")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .single();
+  return data;
+}
+
+export async function getMeasurements(poolId: string, limit = 10) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("measurements")
+    .select("*")
+    .eq("pool_id", poolId)
+    .order("measured_at", { ascending: false })
+    .limit(limit);
+  return data ?? [];
+}
+
+export async function insertMeasurement(
+  measurement: Omit<MeasurementInsert, "id" | "measured_at">
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("measurements")
+    .insert(measurement)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function getTasks() {
+  const supabase = await createClient();
+  const today = new Date().toISOString().split("T")[0];
+
+  const { data } = await supabase
+    .from("tasks")
+    .select("*")
+    .order("next_due", { ascending: true });
+
+  return (data ?? []).map((t) => ({
+    ...t,
+    status:
+      t.status === "pendente" && t.next_due < today
+        ? ("atrasada" as const)
+        : t.status,
+  }));
+}
+
+export async function completeTask(taskId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("tasks")
+    .update({ status: "concluida" })
+    .eq("id", taskId);
+  if (error) throw error;
+}
+
+export async function insertTask(
+  task: Omit<TaskInsert, "id" | "user_id" | "created_at" | "status">
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Não autenticado");
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .insert({ ...task, user_id: user.id })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}

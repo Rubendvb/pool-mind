@@ -1,0 +1,136 @@
+import type { Pool, Measurement, Task } from "@/types";
+
+export const mockPool: Pool = {
+  id: "pool-1",
+  user_id: "mock-user",
+  name: "Piscina Principal",
+  volume: 50000,
+  type: "fibra",
+  created_at: new Date().toISOString(),
+};
+
+export const mockMeasurements: Measurement[] = [
+  {
+    id: "m-1",
+    pool_id: "pool-1",
+    measured_at: new Date().toISOString(),
+    ph: 7.8,
+    chlorine: 0.4,
+    alkalinity: 85,
+    hardness: 210,
+    notes: "Após chuva forte",
+  },
+  {
+    id: "m-2",
+    pool_id: "pool-1",
+    measured_at: new Date(Date.now() - 3 * 864e5).toISOString(),
+    ph: 7.4,
+    chlorine: 1.2,
+    alkalinity: 110,
+    hardness: 220,
+  },
+  {
+    id: "m-3",
+    pool_id: "pool-1",
+    measured_at: new Date(Date.now() - 7 * 864e5).toISOString(),
+    ph: 7.2,
+    chlorine: 2.1,
+    alkalinity: 120,
+    hardness: 215,
+  },
+  {
+    id: "m-4",
+    pool_id: "pool-1",
+    measured_at: new Date(Date.now() - 14 * 864e5).toISOString(),
+    ph: 6.9,
+    chlorine: 0.8,
+    alkalinity: 95,
+    hardness: 200,
+  },
+  {
+    id: "m-5",
+    pool_id: "pool-1",
+    measured_at: new Date(Date.now() - 21 * 864e5).toISOString(),
+    ph: 7.3,
+    chlorine: 1.5,
+    alkalinity: 115,
+    hardness: 225,
+  },
+];
+
+const today = new Date().toISOString().split("T")[0];
+const daysFromNow = (n: number) =>
+  new Date(Date.now() + n * 864e5).toISOString().split("T")[0];
+
+export const mockTasks: Task[] = [
+  {
+    id: "t-1",
+    user_id: "mock-user",
+    title: "Medir química da piscina",
+    category: "piscina",
+    frequency: "semanal",
+    next_due: daysFromNow(1),
+    status: "pendente",
+    created_at: today,
+  },
+  {
+    id: "t-2",
+    user_id: "mock-user",
+    title: "Escovar as paredes",
+    category: "piscina",
+    frequency: "semanal",
+    next_due: daysFromNow(-1),
+    status: "atrasada",
+    created_at: today,
+  },
+  {
+    id: "t-3",
+    user_id: "mock-user",
+    title: "Limpar skimmer e cesto",
+    category: "piscina",
+    frequency: "semanal",
+    next_due: daysFromNow(2),
+    status: "pendente",
+    created_at: today,
+  },
+  {
+    id: "t-4",
+    user_id: "mock-user",
+    title: "Retrolavagem do filtro",
+    category: "piscina",
+    frequency: "quinzenal",
+    next_due: daysFromNow(5),
+    status: "pendente",
+    created_at: today,
+  },
+  {
+    id: "t-5",
+    user_id: "mock-user",
+    title: "Cortar a grama",
+    category: "jardim",
+    frequency: "quinzenal",
+    next_due: daysFromNow(-2),
+    status: "atrasada",
+    created_at: today,
+  },
+  {
+    id: "t-6",
+    user_id: "mock-user",
+    title: "Limpar calhas",
+    category: "casa",
+    frequency: "mensal",
+    next_due: daysFromNow(10),
+    status: "pendente",
+    created_at: today,
+  },
+  {
+    id: "t-7",
+    user_id: "mock-user",
+    title: "Verificar bomba e motor",
+    category: "piscina",
+    frequency: "mensal",
+    next_due: daysFromNow(12),
+    status: "pendente",
+    created_at: today,
+  },
+];
