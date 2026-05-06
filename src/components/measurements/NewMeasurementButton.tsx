@@ -11,7 +11,7 @@ interface Props {
 const fields = [
   { name: "ph", label: "pH", min: "0", max: "14", step: "0.1", placeholder: "7.2 – 7.6", required: true },
   { name: "chlorine", label: "Cloro Livre (mg/L)", min: "0", max: "20", step: "0.1", placeholder: "1.0 – 3.0", required: true },
-  { name: "alkalinity", label: "Alcalinidade (mg/L)", min: "0", max: "500", step: "1", placeholder: "80 – 120", required: true },
+  { name: "alkalinity", label: "Alcalinidade (ppm)", min: "0", max: "500", step: "1", placeholder: "80 – 120", required: true },
   { name: "hardness", label: "Dureza (mg/L) — opcional", min: "0", max: "1000", step: "1", placeholder: "200 – 400", required: false },
 ];
 
@@ -51,7 +51,7 @@ export function NewMeasurementButton({ poolId, poolVolume }: Props) {
               name="pool_volume"
               type="number"
               min="1"
-              step="100"
+              step="1"
               defaultValue={poolVolume}
               required
               className="glass px-3 py-2.5 text-white placeholder-ocean-400/50 outline-none focus:ring-1 focus:ring-ocean-500 rounded-xl text-sm"

@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { createClient } from "./server";
 import type { Database } from "./types";
-import type { Product } from "@/types";
+import type { Product, ProductApplication } from "@/types";
 
 type MeasurementInsert = Database["public"]["Tables"]["measurements"]["Insert"];
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
@@ -55,6 +55,16 @@ export const getTasks = cache(async () => {
         ? ("atrasada" as const)
         : t.status,
   }));
+});
+
+export const getApplications = cache(async (limit = 20): Promise<ProductApplication[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("product_applications")
+    .select("*")
+    .order("applied_at", { ascending: false })
+    .limit(limit);
+  return (data ?? []) as ProductApplication[];
 });
 
 export async function completeTask(taskId: string) {

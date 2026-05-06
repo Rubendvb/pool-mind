@@ -43,7 +43,7 @@ export async function ChemicalSection({ poolId, poolVolume, poolName }: Props) {
             <h2 className="text-xs font-semibold text-ocean-400 uppercase tracking-wider mb-2">
               Recomendações
             </h2>
-            <DosageCard dosages={dosages} />
+            <DosageCard dosages={dosages} products={products} measurementId={latest?.id ?? null} />
           </section>
         </>
       )}

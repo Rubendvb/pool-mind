@@ -35,6 +35,9 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     dosage_reference_liters: null,
     dosage_effect_value: null,
     dosage_effect_type: null,
+    price: null,
+    price_unit: null,
+    package_quantity: null,
     ...overrides,
   };
 }

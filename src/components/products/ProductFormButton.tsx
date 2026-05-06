@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { addProduct, updateProduct } from "@/app/(app)/produtos/actions";
 import type { Product, ProductCategory, ProductUnit, DosageEffectType } from "@/types";
 
@@ -21,7 +22,7 @@ const UNITS: ProductUnit[] = ["g", "kg", "ml", "L"];
 const EFFECT_TYPES: { value: DosageEffectType; label: string }[] = [
   { value: "chlorine_ppm", label: "Cloro (mg/L)" },
   { value: "ph_delta", label: "Delta de pH" },
-  { value: "alkalinity_ppm", label: "Alcalinidade (mg/L)" },
+  { value: "alkalinity_ppm", label: "Alcalinidade (ppm)" },
   { value: "hardness_ppm", label: "Dureza (mg/L)" },
 ];
 
@@ -50,6 +51,7 @@ export function ProductFormButton({ product }: Props) {
   const [showDosage, setShowDosage] = useState(
     !!(product?.dosage_reference_amount || product?.dosage_effect_value)
   );
+  const [showPrice, setShowPrice] = useState(!!(product?.price || product?.package_quantity));
   const [category, setCategory] = useState<ProductCategory>(product?.category ?? "other");
   const isEdit = !!product;
 
@@ -280,6 +282,64 @@ export function ProductFormButton({ product }: Props) {
                       ))}
                     </select>
                   </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Preço e embalagem */}
+          <div className="flex flex-col gap-2 pt-1 border-t border-white/10">
+            <button
+              type="button"
+              onClick={() => setShowPrice((v) => !v)}
+              className="flex items-center justify-between text-xs font-semibold text-ocean-300 hover:text-white transition-colors"
+            >
+              <span>Preço e embalagem</span>
+              <span className="text-ocean-400">{showPrice ? "▲ ocultar" : "▼ configurar"}</span>
+            </button>
+
+            {showPrice && (
+              <div className="flex flex-col gap-3">
+                <p className="text-xs text-ocean-400/70 leading-relaxed">
+                  Ex: saco de 10 kg por R$ 89,90 → preencha: preço 89,90, qtd. 10, unidade kg.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className={labelClass}>Preço (R$)</label>
+                    <CurrencyInput
+                      name="price"
+                      defaultValue={product?.price}
+                      placeholder="89,90"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className={labelClass}>Qtd. embalagem</label>
+                    <input
+                      name="package_quantity"
+                      type="number"
+                      min="0"
+                      step="0.001"
+                      defaultValue={product?.package_quantity ?? ""}
+                      placeholder="Ex: 10"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className={labelClass}>Unidade da embalagem</label>
+                  <select
+                    name="price_unit"
+                    defaultValue={product?.price_unit ?? ""}
+                    className={selectClass}
+                  >
+                    <option value="" style={{ background: "#03045e" }}>—</option>
+                    {UNITS.map((u) => (
+                      <option key={u} value={u} style={{ background: "#03045e" }}>
+                        {u}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             )}

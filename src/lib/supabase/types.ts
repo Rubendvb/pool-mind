@@ -21,6 +21,9 @@ export interface Database {
           dosage_reference_liters: number | null;
           dosage_effect_value: number | null;
           dosage_effect_type: string | null;
+          price: number | null;
+          price_unit: string | null;
+          package_quantity: number | null;
         };
         Insert: {
           id?: string;
@@ -39,6 +42,9 @@ export interface Database {
           dosage_reference_liters?: number | null;
           dosage_effect_value?: number | null;
           dosage_effect_type?: string | null;
+          price?: number | null;
+          price_unit?: string | null;
+          package_quantity?: number | null;
         };
         Update: {
           name?: string;
@@ -54,7 +60,40 @@ export interface Database {
           dosage_reference_liters?: number | null;
           dosage_effect_value?: number | null;
           dosage_effect_type?: string | null;
+          price?: number | null;
+          price_unit?: string | null;
+          package_quantity?: number | null;
         };
+        Relationships: [];
+      };
+      product_applications: {
+        Row: {
+          id: string;
+          user_id: string;
+          product_id: string | null;
+          product_name: string;
+          measurement_id: string | null;
+          quantity_used: number;
+          unit: string;
+          cost: number | null;
+          applied_at: string;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          product_id?: string | null;
+          product_name: string;
+          measurement_id?: string | null;
+          quantity_used: number;
+          unit: string;
+          cost?: number | null;
+          applied_at?: string;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: Record<never, never>;
         Relationships: [];
       };
       push_subscriptions: {
@@ -170,7 +209,20 @@ export interface Database {
       };
     };
     Views: Record<never, never>;
-    Functions: Record<never, never>;
+    Functions: {
+      apply_product_usage: {
+        Args: {
+          p_user_id: string;
+          p_product_id: string;
+          p_quantity_used: number;
+          p_unit: string;
+          p_cost: number | null;
+          p_measurement_id: string | null;
+          p_notes: string | null;
+        };
+        Returns: string;
+      };
+    };
     Enums: Record<never, never>;
     CompositeTypes: Record<never, never>;
   };
