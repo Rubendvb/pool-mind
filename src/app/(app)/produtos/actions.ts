@@ -28,6 +28,9 @@ export async function addProduct(formData: FormData) {
     dosage_reference_liters: parseOptionalNumber(formData.get("dosage_reference_liters") as string),
     dosage_effect_value: parseOptionalNumber(formData.get("dosage_effect_value") as string),
     dosage_effect_type: (formData.get("dosage_effect_type") as string) || null,
+    price: parseOptionalNumber(formData.get("price") as string),
+    price_unit: (formData.get("price_unit") as string) || null,
+    package_quantity: parseOptionalNumber(formData.get("package_quantity") as string),
   });
 
   if (error) return { error: error.message };
@@ -55,6 +58,9 @@ export async function updateProduct(id: string, formData: FormData) {
       dosage_reference_liters: parseOptionalNumber(formData.get("dosage_reference_liters") as string),
       dosage_effect_value: parseOptionalNumber(formData.get("dosage_effect_value") as string),
       dosage_effect_type: (formData.get("dosage_effect_type") as string) || null,
+      price: parseOptionalNumber(formData.get("price") as string),
+      price_unit: (formData.get("price_unit") as string) || null,
+      package_quantity: parseOptionalNumber(formData.get("package_quantity") as string),
     })
     .eq("id", id);
 

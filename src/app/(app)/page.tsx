@@ -3,6 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { CreatePoolForm } from "@/components/dashboard/CreatePoolForm";
 import { ChemicalSection } from "@/components/dashboard/ChemicalSection";
 import { TasksPreview } from "@/components/dashboard/TasksPreview";
+import { VolumeEditor } from "@/components/dashboard/VolumeEditor";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { getPool } from "@/lib/supabase/queries";
 
@@ -22,10 +23,11 @@ export default async function DashboardPage() {
     <main className="pb-24 max-w-lg mx-auto w-full">
       <Header
         title="Pool Mind"
-        subtitle={`${pool.name} · ${(pool.volume / 1000).toFixed(0)} mil L`}
+        subtitle={pool.name}
         action={<span className="text-2xl">🌊</span>}
       />
       <div className="px-4 flex flex-col gap-4">
+        <VolumeEditor poolId={pool.id} volume={pool.volume} />
         {/* Measurements e Tasks carregam em paralelo via Suspense */}
         <Suspense fallback={<><Skeleton className="h-20" /><div className="grid grid-cols-2 gap-3"><Skeleton className="h-28" /><Skeleton className="h-28" /><Skeleton className="h-28" /><Skeleton className="h-28" /></div><Skeleton className="h-24" /></>}>
           <ChemicalSection poolId={pool.id} poolVolume={pool.volume} poolName={pool.name} />

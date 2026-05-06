@@ -26,7 +26,7 @@ export interface Measurement {
   measured_at: string; // ISO string
   ph: number;
   chlorine: number; // cloro livre (mg/L)
-  alkalinity: number; // alcalinidade total (mg/L)
+  alkalinity: number; // alcalinidade total (ppm)
   hardness: number | null; // dureza (mg/L) — opcional
   notes?: string | null;
   image_url?: string | null;
@@ -80,11 +80,14 @@ export interface Product {
   is_active: boolean;
   created_at: string;
   // Phase 2: custom dosage formula
-  // Formula: ceil((delta / effect_value) * reference_amount * (pool_liters / reference_liters))
   dosage_reference_amount: number | null;
   dosage_reference_liters: number | null;
   dosage_effect_value: number | null;
   dosage_effect_type: DosageEffectType | null;
+  // Phase 3: financial
+  price: number | null;            // package price in BRL
+  price_unit: ProductUnit | null;  // unit of package_quantity
+  package_quantity: number | null; // quantity per package in price_unit
 }
 
 export interface DosageRecommendation {
@@ -93,4 +96,19 @@ export interface DosageRecommendation {
   unit: string;
   action: "add" | "reduce" | "none";
   priority: "urgent" | "soon" | "ok";
+  productId?: string; // ID of the user's product when matched; undefined for generic fallbacks
+}
+
+export interface ProductApplication {
+  id: string;
+  user_id: string;
+  product_id: string | null;
+  product_name: string;
+  measurement_id: string | null;
+  quantity_used: number;
+  unit: string;
+  cost: number | null;
+  applied_at: string;
+  notes: string | null;
+  created_at: string;
 }

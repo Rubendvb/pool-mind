@@ -2,6 +2,7 @@ import type { Product, ProductCategory } from "@/types";
 import { ProductFormButton } from "./ProductFormButton";
 import { DeleteProductButton } from "./DeleteProductButton";
 import { ToggleProductButton } from "./ToggleProductButton";
+import { calcStockValue, formatCurrency } from "@/lib/finance";
 
 const CATEGORY_LABELS: Record<ProductCategory, string> = {
   chlorine: "Cloro",
@@ -93,6 +94,14 @@ export function ProductItem({ product }: { product: Product }) {
             Validade: {new Date(product.expiration_date + "T00:00:00").toLocaleDateString("pt-BR")}
           </p>
         )}
+        {(() => {
+          const stockValue = calcStockValue(product);
+          return stockValue !== null ? (
+            <p className="text-xs text-ocean-300/80 mt-0.5">
+              Valor em estoque: {formatCurrency(stockValue)}
+            </p>
+          ) : null;
+        })()}
       </div>
 
       {/* Actions */}

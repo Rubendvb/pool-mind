@@ -11,7 +11,7 @@ interface Props {
 const fields = [
   { name: "ph", label: "pH", min: "0", max: "14", step: "0.1", placeholder: "7.2 – 7.6", required: true },
   { name: "chlorine", label: "Cloro Livre (mg/L)", min: "0", max: "20", step: "0.1", placeholder: "1.0 – 3.0", required: true },
-  { name: "alkalinity", label: "Alcalinidade (mg/L)", min: "0", max: "500", step: "1", placeholder: "80 – 120", required: true },
+  { name: "alkalinity", label: "Alcalinidade (ppm)", min: "0", max: "500", step: "1", placeholder: "80 – 120", required: true },
   { name: "hardness", label: "Dureza (mg/L) — opcional", min: "0", max: "1000", step: "1", placeholder: "200 – 400", required: false },
 ];
 

@@ -1,9 +1,9 @@
 import { Header } from "@/components/layout/Header";
 import { LogoutButton } from "@/components/layout/LogoutButton";
-import { CostReport } from "@/components/insights/CostReport";
+import { ApplicationsReport } from "@/components/insights/ApplicationsReport";
 import { NotificationSetup } from "@/components/push/NotificationSetup";
 import { ParameterChartClient } from "@/components/insights/ParameterChartClient";
-import { getPool, getMeasurements } from "@/lib/supabase/queries";
+import { getPool, getMeasurements, getApplications } from "@/lib/supabase/queries";
 
 export default async function InsightsPage() {
   const pool = await getPool();
@@ -16,7 +16,10 @@ export default async function InsightsPage() {
     );
   }
 
-  const measurements = await getMeasurements(pool.id, 20);
+  const [measurements, applications] = await Promise.all([
+    getMeasurements(pool.id, 20),
+    getApplications(30),
+  ]);
 
   const avgPh = measurements.length
     ? (measurements.reduce((s, m) => s + m.ph, 0) / measurements.length).toFixed(2)
@@ -66,15 +69,13 @@ export default async function InsightsPage() {
           </div>
         )}
 
-        {/* Custos */}
-        {measurements.length > 0 && (
-          <section>
-            <h2 className="text-xs font-semibold text-ocean-400 uppercase tracking-wider mb-2">
-              Consumo e Custos
-            </h2>
-            <CostReport measurements={measurements} poolVolume={pool.volume} />
-          </section>
-        )}
+        {/* Histórico de aplicações */}
+        <section>
+          <h2 className="text-xs font-semibold text-ocean-400 uppercase tracking-wider mb-2">
+            Histórico de Aplicações
+          </h2>
+          <ApplicationsReport applications={applications} />
+        </section>
       </div>
     </main>
   );

@@ -43,7 +43,7 @@ export function buildParameters(m: Measurement): ChemicalParameter[] {
       key: "alkalinity",
       label: "Alcalinidade",
       value: m.alkalinity,
-      unit: "mg/L",
+      unit: "ppm",
       ideal: IDEALS.alkalinity,
       status: getStatus(
         m.alkalinity,
@@ -124,16 +124,17 @@ function resolveAmount(
   userProduct: Product | undefined,
   fallbackName: string,
   fallbackUnit: string
-): { amount: number; productName: string; unit: string } {
+): { amount: number; productName: string; unit: string; productId?: string } {
   if (!userProduct) {
     return { amount: genericAmount, productName: fallbackName, unit: fallbackUnit };
   }
 
   const productName = userProduct.name;
   const unit = userProduct.unit;
+  const productId = userProduct.id;
 
   if (hasCustomDosage(userProduct)) {
-    return { amount: calcProductDosage(delta, volumeLiters, userProduct), productName, unit };
+    return { amount: calcProductDosage(delta, volumeLiters, userProduct), productName, unit, productId };
   }
 
   if (userProduct.concentration !== null) {
@@ -141,10 +142,11 @@ function resolveAmount(
       amount: Math.ceil(genericAmount * (refConcentration / userProduct.concentration)),
       productName,
       unit,
+      productId,
     };
   }
 
-  return { amount: genericAmount, productName, unit };
+  return { amount: genericAmount, productName, unit, productId };
 }
 
 export function calcDosages(
@@ -160,7 +162,7 @@ export function calcDosages(
     const delta = IDEALS.ph.min - m.ph;
     const genericAmount = Math.ceil((delta / 0.2) * 20 * (volumeLiters / 10000));
     const userProduct = findBestProduct(products, "ph_up", today);
-    const { amount, productName, unit } = resolveAmount(
+    const { amount, productName, unit, productId } = resolveAmount(
       delta,
       volumeLiters,
       genericAmount,
@@ -169,7 +171,7 @@ export function calcDosages(
       "pH+ (Barrilha)",
       "g"
     );
-    recs.push({ product: productName, amount, unit, action: "add", priority: delta > 0.4 ? "urgent" : "soon" });
+    recs.push({ product: productName, amount, unit, action: "add", priority: delta > 0.4 ? "urgent" : "soon", productId });
   } else if (m.ph > IDEALS.ph.max) {
     const delta = m.ph - IDEALS.ph.max;
     const genericAmount = Math.ceil((delta / 0.2) * 20 * (volumeLiters / 10000));
@@ -188,7 +190,7 @@ export function calcDosages(
       // pH- concentration adjustment omitted: molarity varies widely; custom formula is preferred
     }
 
-    recs.push({ product: productName, amount, unit, action: "add", priority: delta > 0.4 ? "urgent" : "soon" });
+    recs.push({ product: productName, amount, unit, action: "add", priority: delta > 0.4 ? "urgent" : "soon", productId: userProduct?.id });
   }
 
   // Chlorine correction
@@ -196,7 +198,7 @@ export function calcDosages(
     const delta = IDEALS.chlorine.min - m.chlorine;
     const genericAmount = Math.ceil((delta / 0.5) * 10 * (volumeLiters / 10000));
     const userProduct = findBestProduct(products, "chlorine", today);
-    const { amount, productName, unit } = resolveAmount(
+    const { amount, productName, unit, productId } = resolveAmount(
       delta,
       volumeLiters,
       genericAmount,
@@ -205,7 +207,7 @@ export function calcDosages(
       "Triclorado 90%",
       "g"
     );
-    recs.push({ product: productName, amount, unit, action: "add", priority: m.chlorine < 0.5 ? "urgent" : "soon" });
+    recs.push({ product: productName, amount, unit, action: "add", priority: m.chlorine < 0.5 ? "urgent" : "soon", productId });
   } else if (m.chlorine > IDEALS.chlorine.max) {
     recs.push({
       product: "Cloro Livre",
@@ -216,12 +218,13 @@ export function calcDosages(
     });
   }
 
-  // Alkalinity correction
+  // Alkalinity correction — manufacturer formula: 20g raises 10 ppm per 1000L, targeting 100 ppm
   if (m.alkalinity < IDEALS.alkalinity.min) {
-    const delta = IDEALS.alkalinity.min - m.alkalinity;
-    const genericAmount = Math.ceil((delta / 10) * 15 * (volumeLiters / 10000));
+    const target = (IDEALS.alkalinity.min + IDEALS.alkalinity.max) / 2; // 100 ppm
+    const delta = target - m.alkalinity;
+    const genericAmount = Math.ceil((delta / 10) * (volumeLiters / 1000) * 20);
     const userProduct = findBestProduct(products, "alkalinity_up", today);
-    const { amount, productName, unit } = resolveAmount(
+    const { amount, productName, unit, productId } = resolveAmount(
       delta,
       volumeLiters,
       genericAmount,
@@ -230,7 +233,7 @@ export function calcDosages(
       "Bicarbonato de Sódio",
       "g"
     );
-    recs.push({ product: productName, amount, unit, action: "add", priority: "soon" });
+    recs.push({ product: productName, amount, unit, action: "add", priority: "soon", productId });
   }
 
   // Hardness correction
@@ -238,7 +241,7 @@ export function calcDosages(
     const delta = IDEALS.hardness.min - m.hardness;
     const genericAmount = Math.ceil((delta / 10) * 15 * (volumeLiters / 10000));
     const userProduct = findBestProduct(products, "hardness_up", today);
-    const { amount, productName, unit } = resolveAmount(
+    const { amount, productName, unit, productId } = resolveAmount(
       delta,
       volumeLiters,
       genericAmount,
@@ -247,7 +250,7 @@ export function calcDosages(
       "Cloreto de Cálcio",
       "g"
     );
-    recs.push({ product: productName, amount, unit, action: "add", priority: "soon" });
+    recs.push({ product: productName, amount, unit, action: "add", priority: "soon", productId });
   }
 
   return recs;

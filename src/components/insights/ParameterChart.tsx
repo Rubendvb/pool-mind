@@ -18,7 +18,7 @@ interface Props {
 const PARAMS = [
   { key: "ph", label: "pH", color: "#48cae4", min: 7.2, max: 7.6, decimals: 1 },
   { key: "chlorine", label: "Cloro (mg/L)", color: "#06d6a0", min: 1.0, max: 3.0, decimals: 1 },
-  { key: "alkalinity", label: "Alcalinidade (mg/L)", color: "#ffd166", min: 80, max: 120, decimals: 0 },
+  { key: "alkalinity", label: "Alcalinidade (ppm)", color: "#ffd166", min: 80, max: 120, decimals: 0 },
 ];
 
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { color: string; name: string; value: number }[]; label?: string }) => {
