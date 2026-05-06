@@ -303,7 +303,7 @@ export function ProductFormButton({ product }: Props) {
                 <p className="text-xs text-ocean-400/70 leading-relaxed">
                   Ex: saco de 10 kg por R$ 89,90 → preencha: preço 89,90, qtd. 10, unidade kg.
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1">
                     <label className={labelClass}>Preço (R$)</label>
                     <CurrencyInput
