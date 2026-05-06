@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
+import webpush from "web-push";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export async function POST() {
-  const { default: webpush } = await import("web-push");
-
   const subject = process.env.VAPID_SUBJECT;
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
