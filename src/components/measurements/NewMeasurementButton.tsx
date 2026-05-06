@@ -51,7 +51,7 @@ export function NewMeasurementButton({ poolId, poolVolume }: Props) {
               name="pool_volume"
               type="number"
               min="1"
-              step="100"
+              step="1"
               defaultValue={poolVolume}
               required
               className="glass px-3 py-2.5 text-white placeholder-ocean-400/50 outline-none focus:ring-1 focus:ring-ocean-500 rounded-xl text-sm"

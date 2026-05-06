@@ -38,8 +38,10 @@ function ConversionRow({ label, unitA, unitB, factor }: Conversion) {
   return (
     <div className="glass p-4 space-y-3">
       <p className="text-xs font-semibold text-ocean-300 uppercase tracking-wider">{label}</p>
+
       <div className="flex items-end gap-2">
-        <div className="flex-1 flex flex-col gap-1">
+        {/* Column A */}
+        <div className="flex-1 flex flex-col gap-1 min-w-0">
           <label className="text-xs text-white/50">{unitA}</label>
           <input
             type="number"
@@ -47,13 +49,17 @@ function ConversionRow({ label, unitA, unitB, factor }: Conversion) {
             value={a}
             onChange={(e) => handleA(e.target.value)}
             placeholder="0"
-            className="glass px-3 py-2.5 text-white text-sm placeholder-ocean-400/40 outline-none focus:ring-1 focus:ring-ocean-500 rounded-xl"
+            className="w-full glass px-3 py-2.5 text-white text-sm placeholder-ocean-400/40 outline-none focus:ring-1 focus:ring-ocean-500 rounded-xl"
           />
         </div>
 
-        <span className="text-white/30 pb-2.5 text-lg select-none">⇄</span>
+        {/* Centered arrow — aligns with inputs via items-end + self-center workaround */}
+        <div className="flex-shrink-0 w-7 flex items-center justify-center pb-[1px]" style={{ height: "42px" }}>
+          <span className="text-white/40 text-base select-none">⇄</span>
+        </div>
 
-        <div className="flex-1 flex flex-col gap-1">
+        {/* Column B */}
+        <div className="flex-1 flex flex-col gap-1 min-w-0">
           <label className="text-xs text-white/50">{unitB}</label>
           <input
             type="number"
@@ -61,7 +67,7 @@ function ConversionRow({ label, unitA, unitB, factor }: Conversion) {
             value={b}
             onChange={(e) => handleB(e.target.value)}
             placeholder="0"
-            className="glass px-3 py-2.5 text-white text-sm placeholder-ocean-400/40 outline-none focus:ring-1 focus:ring-ocean-500 rounded-xl"
+            className="w-full glass px-3 py-2.5 text-white text-sm placeholder-ocean-400/40 outline-none focus:ring-1 focus:ring-ocean-500 rounded-xl"
           />
         </div>
       </div>

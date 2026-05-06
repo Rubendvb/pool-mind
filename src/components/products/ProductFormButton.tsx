@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { addProduct, updateProduct } from "@/app/(app)/produtos/actions";
 import type { Product, ProductCategory, ProductUnit, DosageEffectType } from "@/types";
 
@@ -305,13 +306,10 @@ export function ProductFormButton({ product }: Props) {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1">
                     <label className={labelClass}>Preço (R$)</label>
-                    <input
+                    <CurrencyInput
                       name="price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      defaultValue={product?.price ?? ""}
-                      placeholder="Ex: 89.90"
+                      defaultValue={product?.price}
+                      placeholder="89,90"
                       className={inputClass}
                     />
                   </div>

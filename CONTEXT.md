@@ -65,6 +65,13 @@ src/
 │       │   ├── page.tsx            # Gestão do inventário (Server Component async)
 │       │   ├── loading.tsx
 │       │   └── actions.ts          # addProduct, updateProduct, deleteProduct, toggleProductActive
+│       ├── calculadoras/           # Ferramentas utilitárias (Fase 4)
+│       │   ├── page.tsx            # Central de ferramentas
+│       │   ├── loading.tsx
+│       │   ├── piscina/            # Calculadora de volume exato
+│       │   ├── conversor/          # Conversor de unidades (L/m3, etc)
+│       │   ├── regra-de-tres/      # Utilitário genérico
+│       │   └── dosagem/            # Simulador de dosagem rápida
 │       └── insights/
 │           ├── page.tsx            # Resumo, gráficos, custos, notificações
 │           └── loading.tsx
@@ -96,6 +103,11 @@ src/
 │   │   ├── ProductFormButton.tsx   # Modal de criação/edição
 │   │   ├── DeleteProductButton.tsx # Exclusão com confirmação
 │   │   └── ToggleProductButton.tsx # Alternar ativo/inativo
+│   ├── calculators/                # Calculadoras CSR (Volume, Conversão, Regra 3, Dosagem)
+│   │   ├── PoolVolumeCalculator.tsx
+│   │   ├── ConverterCalculator.tsx
+│   │   ├── RuleOfThreeCalculator.tsx
+│   │   └── DosageSandbox.tsx
 │   ├── insights/
 │   │   ├── ParameterChart.tsx      # Recharts LineChart (Client Component puro)
 │   │   ├── ParameterChartClient.tsx  # Wrapper com next/dynamic ssr:false

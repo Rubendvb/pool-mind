@@ -8,6 +8,7 @@ PWA de controle químico e manutenção de piscinas. Registre medições, receba
 
 - **Dashboard** — status geral da água com cards de parâmetros (pH, cloro, alcalinidade, dureza), recomendações de correção e prévia das próximas tarefas
 - **Produtos** — gestão do inventário de produtos químicos, com controle de estoque, categoria, validade e atributos ativos.
+- **Calculadoras e Utilitários** — central de ferramentas para cálculo exato de volume, simulador de dosagem rápida, conversão de medidas e regra de três (CSR imediato).
 - **Medições** — histórico completo com formulário de registro; campo de dureza opcional
 - **Tarefas** — checklist por categoria (piscina, jardim, casa) com frequência recorrente; ao concluir, o banco recalcula automaticamente a próxima data via trigger
 - **Insights** — gráficos de evolução dos parâmetros, relatório de consumo estimado de produtos com custo em R$, e configuração de notificações push
@@ -127,6 +128,7 @@ src/
 │       ├── layout.tsx              # Injeta BottomNav
 │       ├── page.tsx                # Dashboard com Suspense streaming
 │       ├── produtos/               # Gestão do inventário químico
+│       ├── calculadoras/           # Central de ferramentas e utilitários
 │       ├── medicoes/               # Histórico e registro de medições
 │       ├── tarefas/                # Lista e gestão de tarefas
 │       └── insights/               # Gráficos, custos e notificações
@@ -137,6 +139,7 @@ src/
 │   ├── dashboard/                  # ChemicalSection, TasksPreview, DosageCard, CreatePoolForm
 │   ├── measurements/               # NewMeasurementButton
 │   ├── products/                   # ProductItem, ProductFormButton, DeleteProductButton, etc.
+│   ├── calculators/                # PoolVolumeCalculator, ConverterCalculator, DosageSandbox, etc.
 │   ├── tasks/                      # TaskItem, NewTaskButton, CompleteTaskButton
 │   ├── insights/                   # ParameterChart, ParameterChartClient, CostReport
 │   ├── push/                       # NotificationSetup
