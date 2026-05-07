@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { createClient } from "./server";
 import type { Database } from "./types";
-import type { Product, ProductApplication } from "@/types";
+import type { Product, ProductApplication, ProductDosageRule } from "@/types";
 
 type MeasurementInsert = Database["public"]["Tables"]["measurements"]["Insert"];
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
@@ -61,6 +61,15 @@ export const getTasks = cache(async () => {
         ? ("atrasada" as const)
         : t.status,
   }));
+});
+
+export const getDosageRules = cache(async (): Promise<ProductDosageRule[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("product_dosage_rules")
+    .select("*")
+    .eq("is_active", true);
+  return (data ?? []) as ProductDosageRule[];
 });
 
 export const getApplications = cache(async (limit = 20): Promise<ProductApplication[]> => {

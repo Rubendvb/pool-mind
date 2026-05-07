@@ -4,6 +4,8 @@ import type {
   ParameterStatus,
   DosageRecommendation,
   Product,
+  ProductDosageRule,
+  DosageUsageType,
 } from "@/types";
 
 const IDEALS = {
@@ -114,10 +116,25 @@ function calcProductDosage(
   );
 }
 
-// Resolves amount + label + unit using three-tier priority:
-//   1. Custom dosage formula (most accurate)
-//   2. Concentration-adjusted generic formula
-//   3. Generic fallback (no product configured)
+function findRule(
+  rules: ProductDosageRule[],
+  productId: string,
+  usageType: DosageUsageType
+): ProductDosageRule | undefined {
+  return rules.find(
+    (r) => r.product_id === productId && r.usage_type === usageType && r.is_active
+  );
+}
+
+function calcRuleDosage(volumeLiters: number, rule: ProductDosageRule): number {
+  return Math.ceil((volumeLiters / rule.reference_volume_liters) * rule.amount);
+}
+
+// Resolves amount + label + unit using four-tier priority:
+//   1. Matching dosage rule (usage_type-aware, most specific)
+//   2. Custom dosage formula (product-level formula)
+//   3. Concentration-adjusted generic formula
+//   4. Generic fallback (no product configured)
 function resolveAmount(
   delta: number,
   volumeLiters: number,
@@ -125,15 +142,29 @@ function resolveAmount(
   refConcentration: number,
   userProduct: Product | undefined,
   fallbackName: string,
-  fallbackUnit: string
-): { amount: number; productName: string; unit: string; productId?: string } {
+  fallbackUnit: string,
+  rules: ProductDosageRule[],
+  usageType: DosageUsageType
+): { amount: number; productName: string; unit: string; productId?: string; ruleName?: string } {
   if (!userProduct) {
     return { amount: genericAmount, productName: fallbackName, unit: fallbackUnit };
   }
 
   const productName = userProduct.name;
-  const unit = userProduct.unit;
   const productId = userProduct.id;
+
+  const rule = findRule(rules, productId, usageType);
+  if (rule) {
+    return {
+      amount: calcRuleDosage(volumeLiters, rule),
+      productName,
+      unit: rule.unit,
+      productId,
+      ruleName: rule.name,
+    };
+  }
+
+  const unit = userProduct.unit;
 
   if (hasCustomDosage(userProduct)) {
     return { amount: calcProductDosage(delta, volumeLiters, userProduct), productName, unit, productId };
@@ -154,7 +185,8 @@ function resolveAmount(
 export function calcDosages(
   m: Measurement,
   volumeLiters: number,
-  products: Product[] = []
+  products: Product[] = [],
+  rules: ProductDosageRule[] = []
 ): DosageRecommendation[] {
   const today = new Date().toISOString().split("T")[0];
   const recs: DosageRecommendation[] = [];
@@ -164,16 +196,11 @@ export function calcDosages(
     const delta = IDEALS.ph.min - m.ph;
     const genericAmount = Math.ceil((delta / 0.2) * 20 * (volumeLiters / 10000));
     const userProduct = findBestProduct(products, "ph_up", today);
-    const { amount, productName, unit, productId } = resolveAmount(
-      delta,
-      volumeLiters,
-      genericAmount,
-      REF_CONCENTRATION.ph_up,
-      userProduct,
-      "pH+ (Barrilha)",
-      "g"
+    const { amount, productName, unit, productId, ruleName } = resolveAmount(
+      delta, volumeLiters, genericAmount, REF_CONCENTRATION.ph_up,
+      userProduct, "pH+ (Barrilha)", "g", rules, "ph_correction"
     );
-    recs.push({ product: productName, amount, unit, action: "add", priority: delta > 0.4 ? "urgent" : "soon", productId });
+    recs.push({ product: productName, amount, unit, action: "add", priority: delta > 0.4 ? "urgent" : "soon", productId, ruleName });
   } else if (m.ph > IDEALS.ph.max) {
     const delta = m.ph - IDEALS.ph.max;
     const genericAmount = Math.ceil((delta / 0.2) * 20 * (volumeLiters / 10000));
@@ -182,42 +209,43 @@ export function calcDosages(
     let amount = genericAmount;
     let productName = "pH- (Ácido Muriático)";
     let unit = "ml";
+    let productId: string | undefined;
+    let ruleName: string | undefined;
 
     if (userProduct) {
       productName = userProduct.name;
-      unit = userProduct.unit;
-      if (hasCustomDosage(userProduct)) {
-        amount = calcProductDosage(delta, volumeLiters, userProduct);
+      productId = userProduct.id;
+      const rule = findRule(rules, productId, "ph_correction");
+      if (rule) {
+        amount = calcRuleDosage(volumeLiters, rule);
+        unit = rule.unit;
+        ruleName = rule.name;
+      } else {
+        unit = userProduct.unit;
+        if (hasCustomDosage(userProduct)) {
+          amount = calcProductDosage(delta, volumeLiters, userProduct);
+        }
+        // Concentration adjustment omitted for pH-: molarity varies widely; rule or custom formula preferred
       }
-      // pH- concentration adjustment omitted: molarity varies widely; custom formula is preferred
     }
 
-    recs.push({ product: productName, amount, unit, action: "add", priority: delta > 0.4 ? "urgent" : "soon", productId: userProduct?.id });
+    recs.push({ product: productName, amount, unit, action: "add", priority: delta > 0.4 ? "urgent" : "soon", productId, ruleName });
   }
 
-  // Chlorine correction
+  // Chlorine correction — low value picks shock vs maintenance based on severity
   if (m.chlorine < IDEALS.chlorine.min) {
+    const isShock = m.chlorine < 0.5;
+    const usageType: DosageUsageType = isShock ? "shock" : "maintenance";
     const delta = IDEALS.chlorine.min - m.chlorine;
     const genericAmount = Math.ceil((delta / 0.5) * 10 * (volumeLiters / 10000));
     const userProduct = findBestProduct(products, "chlorine", today);
-    const { amount, productName, unit, productId } = resolveAmount(
-      delta,
-      volumeLiters,
-      genericAmount,
-      REF_CONCENTRATION.chlorine,
-      userProduct,
-      "Triclorado 90%",
-      "g"
+    const { amount, productName, unit, productId, ruleName } = resolveAmount(
+      delta, volumeLiters, genericAmount, REF_CONCENTRATION.chlorine,
+      userProduct, "Triclorado 90%", "g", rules, usageType
     );
-    recs.push({ product: productName, amount, unit, action: "add", priority: m.chlorine < 0.5 ? "urgent" : "soon", productId });
+    recs.push({ product: productName, amount, unit, action: "add", priority: isShock ? "urgent" : "soon", productId, ruleName });
   } else if (m.chlorine > IDEALS.chlorine.max) {
-    recs.push({
-      product: "Cloro Livre",
-      amount: 0,
-      unit: "",
-      action: "reduce",
-      priority: m.chlorine > 5 ? "urgent" : "soon",
-    });
+    recs.push({ product: "Cloro Livre", amount: 0, unit: "", action: "reduce", priority: m.chlorine > 5 ? "urgent" : "soon" });
   }
 
   // Alkalinity correction — manufacturer formula: 20g raises 10 ppm per 1000L, targeting 100 ppm
@@ -226,16 +254,11 @@ export function calcDosages(
     const delta = target - m.alkalinity;
     const genericAmount = Math.ceil((delta / 10) * (volumeLiters / 1000) * 20);
     const userProduct = findBestProduct(products, "alkalinity_up", today);
-    const { amount, productName, unit, productId } = resolveAmount(
-      delta,
-      volumeLiters,
-      genericAmount,
-      REF_CONCENTRATION.alkalinity_up,
-      userProduct,
-      "Bicarbonato de Sódio",
-      "g"
+    const { amount, productName, unit, productId, ruleName } = resolveAmount(
+      delta, volumeLiters, genericAmount, REF_CONCENTRATION.alkalinity_up,
+      userProduct, "Bicarbonato de Sódio", "g", rules, "alkalinity_correction"
     );
-    recs.push({ product: productName, amount, unit, action: "add", priority: "soon", productId });
+    recs.push({ product: productName, amount, unit, action: "add", priority: "soon", productId, ruleName });
   }
 
   // Hardness correction (skip if null or 0 — treated as "not measured")
@@ -243,16 +266,11 @@ export function calcDosages(
     const delta = IDEALS.hardness.min - m.hardness;
     const genericAmount = Math.ceil((delta / 10) * 15 * (volumeLiters / 10000));
     const userProduct = findBestProduct(products, "hardness_up", today);
-    const { amount, productName, unit, productId } = resolveAmount(
-      delta,
-      volumeLiters,
-      genericAmount,
-      REF_CONCENTRATION.hardness_up,
-      userProduct,
-      "Cloreto de Cálcio",
-      "g"
+    const { amount, productName, unit, productId, ruleName } = resolveAmount(
+      delta, volumeLiters, genericAmount, REF_CONCENTRATION.hardness_up,
+      userProduct, "Cloreto de Cálcio", "g", rules, "custom"
     );
-    recs.push({ product: productName, amount, unit, action: "add", priority: "soon", productId });
+    recs.push({ product: productName, amount, unit, action: "add", priority: "soon", productId, ruleName });
   }
 
   return recs;

@@ -4,6 +4,7 @@ import { Modal } from "@/components/ui/Modal";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { useToast } from "@/components/ui/Toast";
 import { addProduct, updateProduct } from "@/app/(app)/produtos/actions";
+import { DosageRulesSection } from "./DosageRulesSection";
 import type { Product, ProductCategory, ProductUnit, DosageEffectType } from "@/types";
 
 const CATEGORIES: { value: ProductCategory; label: string }[] = [
@@ -54,6 +55,7 @@ export function ProductFormButton({ product }: Props) {
     !!(product?.dosage_reference_amount || product?.dosage_effect_value)
   );
   const [showPrice, setShowPrice] = useState(!!(product?.price || product?.package_quantity));
+  const [showRules, setShowRules] = useState(false);
   const [category, setCategory] = useState<ProductCategory>(product?.category ?? "other");
   const isEdit = !!product;
 
@@ -345,6 +347,28 @@ export function ProductFormButton({ product }: Props) {
                   </select>
                 </div>
               </div>
+            )}
+          </div>
+
+          {/* Regras de dosagem */}
+          <div className="flex flex-col gap-2 pt-1 border-t border-white/10">
+            <button
+              type="button"
+              onClick={() => setShowRules((v) => !v)}
+              className="flex items-center justify-between text-xs font-semibold text-ocean-300 hover:text-white transition-colors"
+            >
+              <span>Regras de dosagem</span>
+              <span className="text-ocean-400">{showRules ? "▲ ocultar" : "▼ configurar"}</span>
+            </button>
+
+            {showRules && (
+              isEdit ? (
+                <DosageRulesSection productId={product.id} />
+              ) : (
+                <p className="text-xs text-ocean-400/60">
+                  Salve o produto primeiro para configurar regras de dosagem.
+                </p>
+              )
             )}
           </div>
 

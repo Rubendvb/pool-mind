@@ -42,6 +42,7 @@ export function DosageCard({ dosages, products, measurementId }: Props) {
                 {d.action === "add" && d.amount > 0 && (
                   <p className="text-xs text-ocean-400">
                     {d.amount} {d.unit}
+                    {d.ruleName && <span className="text-ocean-400/60"> · {d.ruleName}</span>}
                   </p>
                 )}
                 {d.action === "reduce" && (

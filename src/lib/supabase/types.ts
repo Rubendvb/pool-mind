@@ -68,6 +68,47 @@ export interface Database {
         };
         Relationships: [];
       };
+      product_dosage_rules: {
+        Row: {
+          id: string;
+          user_id: string;
+          product_id: string;
+          name: string;
+          usage_type: string;
+          amount: number;
+          unit: string;
+          reference_volume_liters: number;
+          condition_label: string | null;
+          notes: string | null;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          product_id: string;
+          name: string;
+          usage_type: string;
+          amount: number;
+          unit: string;
+          reference_volume_liters: number;
+          condition_label?: string | null;
+          notes?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          usage_type?: string;
+          amount?: number;
+          unit?: string;
+          reference_volume_liters?: number;
+          condition_label?: string | null;
+          notes?: string | null;
+          is_active?: boolean;
+        };
+        Relationships: [];
+      };
       product_applications: {
         Row: {
           id: string;

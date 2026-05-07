@@ -97,6 +97,33 @@ export interface DosageRecommendation {
   action: "add" | "reduce" | "none";
   priority: "urgent" | "soon" | "ok";
   productId?: string; // ID of the user's product when matched; undefined for generic fallbacks
+  ruleName?: string;  // name of the matched dosage rule, if any
+}
+
+export type DosageUsageType =
+  | "maintenance"
+  | "shock"
+  | "low_turbidity"
+  | "medium_turbidity"
+  | "high_turbidity"
+  | "ph_correction"
+  | "alkalinity_correction"
+  | "clarification"
+  | "custom";
+
+export interface ProductDosageRule {
+  id: string;
+  user_id: string;
+  product_id: string;
+  name: string;
+  usage_type: DosageUsageType;
+  amount: number;
+  unit: string;
+  reference_volume_liters: number;
+  condition_label: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
 }
 
 export interface ProductApplication {
