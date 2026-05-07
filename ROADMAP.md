@@ -109,34 +109,38 @@ _Fechar os gaps da versão atual antes de adicionar novas features._
 
 ---
 
-### Fase 6 — Features de Retenção
+### ✅ Fase 6 — Features de Retenção
 
 _Funcionalidades que aumentam o uso contínuo e reduzem o churn._
 
 #### Medições e tarefas
 
-- [ ] **Edição de medições** — modal com `defaultValues` para corrigir valores errados
-- [ ] **Edição de tarefas** — alterar título, categoria e frequência após criação
-- [ ] **Notas de medição exibidas** no histórico (campo existe no banco, não aparece na UI)
+- [x] **Edição de medições** — `EditMeasurementButton` abre modal com `defaultValues`; salva via `editMeasurement` action
+- [x] **Edição de tarefas** — `EditTaskButton` em `TaskItem`; `updateTask` action com revalidação de `/tarefas` e `/`
+- [x] **Notas de medição exibidas** no histórico — já exibidas como texto truncado na linha de data/status
 
 #### Estoque e alertas
 
-- [ ] **Banner de estoque baixo** — alerta visual em `/produtos` quando `quantity ≤ limiar` ou `expiration_date ≤ 30 dias`
-- [ ] **Lista de compras automática** — gerar lista de produtos com estoque baixo; exportar como texto ou PDF
-- [ ] **Notificações push automáticas via cron** — configurar Vercel Cron Jobs para chamar `/api/push/notify` diariamente
-
-#### Exportação
-
-- [ ] **Relatório PDF mensal** — parâmetros, dosagens aplicadas, custos e tarefas do mês (`@react-pdf/renderer` ou `jsPDF`)
+- [x] **Banner de estoque baixo** — alerta visual em `/produtos` com lista de nomes; thresholds: ≤1 para kg/L, ≤500 para g/ml
+- [x] **Lista de compras automática** — `ShoppingListButton` gera lista formatada e copia para clipboard via `navigator.clipboard`
+- [x] **Notificações push automáticas via cron** — `vercel.json` com schedule `0 11 * * *` (08:00 BRT); `/api/push/notify` verifica `Authorization: Bearer CRON_SECRET`; modo cron usa `createAdminClient()` e processa todos os usuários
 
 #### Dashboard
 
-- [ ] **Modo "Medição Rápida"** — formulário mínimo no dashboard (pH + cloro) sem abrir `/medicoes`
-- [ ] Unificar `CostReport` e `ApplicationsReport` em Insights — hoje têm propósitos sobrepostos confusos
+- [x] **Medição Rápida no dashboard** — `NewMeasurementButton` substituiu o emoji 🌊 no `action` slot do Header
 
 #### Banco
 
-- [ ] **Soft delete** em `measurements` e `products` — coluna `deleted_at TIMESTAMPTZ DEFAULT NULL`; filtrar `WHERE deleted_at IS NULL`
+- [x] **Soft delete** em `measurements` e `products` — migration `008_soft_delete.sql`; `deleteMeasurement` e `deleteProduct` fazem `UPDATE deleted_at = now()`; queries filtram `WHERE deleted_at IS NULL`
+- [x] **`createAdminClient`** — cliente Supabase com service_role para uso em cron routes
+
+#### Cleanup
+
+- [x] **`CostReport.tsx` removido** — era dead code; `ApplicationsReport` já cobre o mesmo propósito
+
+#### Pendente (adiado)
+
+- [ ] **Relatório PDF mensal** — movido para Fase 7
 - [ ] **Idempotência na RPC `apply_product_usage`** — `idempotency_key UUID` para evitar double-submit
 
 ---

@@ -4,6 +4,7 @@ import { CreatePoolForm } from "@/components/dashboard/CreatePoolForm";
 import { ChemicalSection } from "@/components/dashboard/ChemicalSection";
 import { TasksPreview } from "@/components/dashboard/TasksPreview";
 import { VolumeEditor } from "@/components/dashboard/VolumeEditor";
+import { NewMeasurementButton } from "@/components/measurements/NewMeasurementButton";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { getPool } from "@/lib/supabase/queries";
 
@@ -24,7 +25,7 @@ export default async function DashboardPage() {
       <Header
         title="Pool Mind"
         subtitle={pool.name}
-        action={<span className="text-2xl">🌊</span>}
+        action={<NewMeasurementButton poolId={pool.id} poolVolume={pool.volume} />}
       />
       <div className="px-4 flex flex-col gap-4">
         <VolumeEditor poolId={pool.id} volume={pool.volume} />

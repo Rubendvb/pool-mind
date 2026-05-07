@@ -1,5 +1,6 @@
 import type { Task, TaskCategory } from "@/types";
 import { CompleteTaskButton } from "./CompleteTaskButton";
+import { EditTaskButton } from "./EditTaskButton";
 
 const categoryIcon: Record<TaskCategory, string> = {
   piscina: "🏊",
@@ -53,6 +54,7 @@ export function TaskItem({ task }: Props) {
       <span className={`text-xs font-semibold flex-shrink-0 ${dueColor}`}>
         {dueLabel}
       </span>
+      <EditTaskButton task={task} />
       <CompleteTaskButton taskId={task.id} />
     </div>
   );

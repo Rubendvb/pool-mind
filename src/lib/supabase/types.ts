@@ -24,6 +24,7 @@ export interface Database {
           price: number | null;
           price_unit: string | null;
           package_quantity: number | null;
+          deleted_at: string | null;
         };
         Insert: {
           id?: string;
@@ -63,6 +64,7 @@ export interface Database {
           price?: number | null;
           price_unit?: string | null;
           package_quantity?: number | null;
+          deleted_at?: string | null;
         };
         Relationships: [];
       };
@@ -155,6 +157,7 @@ export interface Database {
           notes: string | null;
           image_url: string | null;
           measured_at: string;
+          deleted_at: string | null;
         };
         Insert: {
           id?: string;
@@ -166,6 +169,7 @@ export interface Database {
           notes?: string | null;
           image_url?: string | null;
           measured_at?: string;
+          deleted_at?: string | null;
         };
         Update: {
           ph?: number;
@@ -174,6 +178,8 @@ export interface Database {
           hardness?: number | null;
           notes?: string | null;
           image_url?: string | null;
+          measured_at?: string;
+          deleted_at?: string | null;
         };
         Relationships: [];
       };

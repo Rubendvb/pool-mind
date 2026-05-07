@@ -25,6 +25,7 @@ export const getMeasurements = cache(async (poolId: string, limit = 10) => {
     .from("measurements")
     .select("*")
     .eq("pool_id", poolId)
+    .is("deleted_at", null)
     .order("measured_at", { ascending: false })
     .limit(limit);
   return data ?? [];
@@ -35,6 +36,7 @@ export const getProducts = cache(async (): Promise<Product[]> => {
   const { data } = await supabase
     .from("products")
     .select("*")
+    .is("deleted_at", null)
     .order("name", { ascending: true });
   return (data ?? []) as Product[];
 });

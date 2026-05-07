@@ -3,6 +3,7 @@ import { ParameterCard } from "@/components/ui/ParameterCard";
 import { StatusDot } from "@/components/ui/StatusBadge";
 import { NewMeasurementButton } from "@/components/measurements/NewMeasurementButton";
 import { DeleteMeasurementButton } from "@/components/measurements/DeleteMeasurementButton";
+import { EditMeasurementButton } from "@/components/measurements/EditMeasurementButton";
 import { getPool, getMeasurements } from "@/lib/supabase/queries";
 import { buildParameters, overallStatus } from "@/lib/chemistry";
 
@@ -61,7 +62,8 @@ export default async function MedicoesPage() {
                     {m.notes}
                   </span>
                 )}
-                <div className="ml-auto">
+                <div className="ml-auto flex items-center gap-1">
+                  <EditMeasurementButton measurement={m} poolId={pool.id} poolVolume={pool.volume} />
                   <DeleteMeasurementButton measurementId={m.id} />
                 </div>
               </div>
