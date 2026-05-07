@@ -6,12 +6,12 @@ PWA de controle químico e manutenção de piscinas. Registre medições, receba
 
 ## Funcionalidades
 
-- **Dashboard** — status geral da água com cards de parâmetros (pH, cloro, alcalinidade, dureza), recomendações de correção e prévia das próximas tarefas
-- **Produtos** — gestão do inventário de produtos químicos, com controle de estoque, categoria, validade e atributos ativos.
-- **Calculadoras e Utilitários** — central de ferramentas para cálculo exato de volume, simulador de dosagem rápida, conversão de medidas e regra de três (CSR imediato).
-- **Medições** — histórico completo com formulário de registro; campo de dureza opcional
+- **Dashboard** — status geral da água com cards de parâmetros (pH, cloro, alcalinidade, dureza), recomendações de correção com botão de aplicação de dosagem, prévia das próximas tarefas e editor de volume da piscina
+- **Produtos** — gestão do inventário de produtos químicos, com controle de estoque, categoria, validade, regras de dosagem personalizada e atributos ativos
+- **Calculadoras e Utilitários** — central de ferramentas: cálculo exato de volume, simulador de dosagem rápida, conversão de medidas e regra de três simples e composta (com abas)
+- **Medições** — histórico completo com formulário de registro e exclusão; campo de dureza opcional
 - **Tarefas** — checklist por categoria (piscina, jardim, casa) com frequência recorrente; ao concluir, o banco recalcula automaticamente a próxima data via trigger
-- **Insights** — gráficos de evolução dos parâmetros, relatório de consumo estimado de produtos com custo em R$, e configuração de notificações push
+- **Insights** — gráficos de evolução dos parâmetros, relatório de aplicações de produtos com custo em R$, relatório de consumo estimado e configuração de notificações push
 - **Autenticação** — login e cadastro por e-mail/senha com confirmação; sessão gerenciada via cookie
 - **PWA** — instalável no celular, com service worker e manifest configurados
 
@@ -134,20 +134,26 @@ src/
 │       └── insights/               # Gráficos, custos e notificações
 │
 ├── components/
-│   ├── ui/                         # Modal, ParameterCard, StatusBadge, Skeleton
+│   ├── ui/                         # Modal, ParameterCard, StatusBadge, Skeleton, CurrencyInput
 │   ├── layout/                     # BottomNav, Header, LogoutButton
-│   ├── dashboard/                  # ChemicalSection, TasksPreview, DosageCard, CreatePoolForm
-│   ├── measurements/               # NewMeasurementButton
-│   ├── products/                   # ProductItem, ProductFormButton, DeleteProductButton, etc.
-│   ├── calculators/                # PoolVolumeCalculator, ConverterCalculator, DosageSandbox, etc.
+│   ├── dashboard/                  # ChemicalSection, TasksPreview, DosageCard, CreatePoolForm, ApplyDosageButton, VolumeEditor
+│   ├── measurements/               # NewMeasurementButton, DeleteMeasurementButton
+│   ├── products/                   # ProductItem, ProductFormButton, DeleteProductButton, ToggleProductButton
+│   ├── calculators/                # PoolVolumeCalculator, ConverterCalculator, DosageSandbox, RuleOfThreeCalculator, CompoundRuleOfThreeCalculator, RuleOfThreeTabs
 │   ├── tasks/                      # TaskItem, NewTaskButton, CompleteTaskButton
-│   ├── insights/                   # ParameterChart, ParameterChartClient, CostReport
+│   ├── insights/                   # ParameterChart, ParameterChartClient, CostReport, ApplicationsReport
 │   ├── push/                       # NotificationSetup
 │   └── pwa/                        # ServiceWorkerRegister
 │
 ├── lib/
 │   ├── chemistry.ts                # buildParameters, calcDosages, overallStatus
+│   ├── currency.ts                 # Formatação de moeda (BRL)
+│   ├── finance.ts                  # Cálculos de custo de aplicações de produtos
 │   ├── mocks.ts                    # Dados estáticos para desenvolvimento
+│   ├── calculators/
+│   │   └── volume.ts               # Cálculo de volume de piscina por formato
+│   ├── __tests__/
+│   │   └── chemistry.test.ts       # Testes unitários (Vitest)
 │   └── supabase/
 │       ├── client.ts               # createBrowserClient (Client Components)
 │       ├── server.ts               # createServerClient com cookies (Server Components)

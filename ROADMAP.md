@@ -1,112 +1,233 @@
-# 🗺️ Pool Mind — Roadmap Técnico e Funcional
+# Pool Mind — Roadmap Técnico e Funcional
 
-## 📖 Visão geral do produto
+## Visão geral do produto
 
-O Pool Mind é uma plataforma inteligente voltada para o controle químico e automação da manutenção de piscinas. Seu diferencial está em abandonar os cálculos genéricos e adotar cálculos reais baseados nos produtos específicos do usuário, aliando gestão financeira (custos reais de aplicação), automação e uma UX móvel simples (PWA).
+Pool Mind é uma plataforma inteligente para controle químico e automação da manutenção de piscinas. Seu diferencial é abandonar cálculos genéricos e adotar cálculos reais baseados nos produtos específicos do usuário, com gestão financeira (custos reais de aplicação), automação e UX mobile-first (PWA).
 
-## 🚀 Estratégia de evolução
+## Estratégia de evolução
 
-A evolução do projeto se dará por fases incrementais, garantindo entregas de valor sem quebrar funcionalidades existentes, priorizando:
+A evolução se dará em fases incrementais, priorizando:
 
-1. **Modelagem de Domínio (Produtos):** Integrar o estoque real aos cálculos da piscina.
-2. **Inteligência Química e Financeira:** Lógicas de cálculo por produto e apuração de custos reais.
-3. **Ferramentas Utilitárias:** Calculadoras de volume e de dosagem rápida para o dia a dia.
-4. **Insights e Automação:** Fechar o ciclo com relatórios avançados, avisos e integrações futuras.
+1. **Modelagem de domínio (Produtos):** integrar estoque real aos cálculos.
+2. **Inteligência química e financeira:** cálculos por produto, apuração de custos reais.
+3. **Ferramentas utilitárias:** calculadoras de volume e dosagem rápida.
+4. **Insights e automação:** relatórios avançados, alertas e integrações futuras.
+5. **Estabilidade e polish:** fechar gaps de UX, bugs e qualidade antes de crescer.
+6. **Features de retenção:** edição, alertas, notificações automáticas, exportação.
+7. **Inteligência:** IA, tendências, Langelier, múltiplas piscinas.
+8. **SaaS / Crescimento:** modo profissional B2B, OCR, gamificação, monetização.
 
-A arquitetura se mantém fiel a **Next.js 16 (App Router), Server Actions, Supabase (com RLS), TypeScript strict e Tailwind v4**. A estratégia de código foca em forte separação de domínio (ex: módulo de química puro e imutável separado da lógica de banco).
+Stack: **Next.js 16 (App Router), Server Actions, Supabase (RLS), TypeScript strict, Tailwind v4.**
 
 ---
 
-## 📅 Roadmap por Fases
+## Roadmap por Fases
 
-### ✅ Fase 1 — Produtos Inteligentes e Estoque (Prioridade Alta)
+### ✅ Fase 1 — Produtos Inteligentes e Estoque
 
 _Integrar o estoque de produtos físicos do usuário na plataforma._
 
-- **Objetivo:** Criar a fundação para os cálculos personalizados, gerenciando os produtos que o usuário efetivamente possui.
-- **Funcionalidades:**
-  - CRUD completo de produtos (tela `/produtos`).
-  - Atributos base: Categoria química, concentração, validade, estoque, fabricante.
-  - Ativar/Inativar produtos.
-- **Impacto no Usuário:** Em vez de ver recomendações abstratas ("adicione cloro"), ele visualizará seus produtos reais na interface.
-- **Dependências:** Nenhuma (independente das medições atuais).
-- **Complexidade Estimada:** Baixa/Média.
-- **Sugestões Técnicas:**
-  - Criação da tabela `products` com RLS restrito ao `user_id`.
-  - Uso intensivo de `React.cache()` ou instâncias do Supabase para otimizar busca de inventário.
-  - _Status:_ Implementação base já iniciada (schema pronto).
-
-### ✅ Fase 2 — Dosagem Personalizada por Produto (Prioridade Altíssima)
-
-_O grande diferencial técnico do app: cálculos baseados nas regras de cada produto._
-
-- **Objetivo:** Substituir as fórmulas genéricas por fórmulas vinculadas aos produtos específicos.
-- **Funcionalidades:**
-  - Configuração de métrica de dosagem no produto (ex: `10g` para cada `1000L` eleva `1ppm`).
-  - Adaptação do `calcDosages` da Dashboard para utilizar a dosagem real em vez do _fallback_.
-  - Cálculo de diluição em segundo plano.
-- **Impacto no Usuário:** Resultados ultraprecisos ("Adicione 48g do seu Cloro HTH 90%").
-- **Dependências:** Fase 1.
-- **Complexidade Estimada:** Alta.
-- **Sugestões Técnicas:**
-  - Adicionar campos em `products`: `dosage_reference_amount`, `dosage_reference_liters`, `dosage_effect_value`, `dosage_effect_type`.
-  - Desacoplar a lógica matemática (`src/lib/chemistry.ts`) para injetar produtos ativamente.
-
-### ✅ Fase 3 — Inteligência Financeira e Consumo (Custos Reais)
-
-_Transformar dados químicos em inteligência financeira._
-
-- **Objetivo:** Rastrear as aplicações diárias e calcular quanto a manutenção custa na prática.
-- **Funcionalidades:**
-  - Registro de atributos de preço (`price`, `price_unit`, `package_quantity`).
-  - Histórico de aplicações: Produto, quantidade aplicada, data, custo gerado, e medição relacionada.
-  - Baixa de estoque automática via confirmação da Dashboard.
-- **Impacto no Usuário:** Controle total e transparente dos gastos da piscina.
-- **Dependências:** Fases 1 e 2.
-- **Complexidade Estimada:** Média.
-- **Sugestões Técnicas:**
-  - Tabela `product_applications` (log imutável).
-  - Triggers em SQL (Supabase) ou Server Actions transacionais para garantir a consistência do campo `stock` nos produtos.
-
-### Fase 4 — Utilitários e Calculadora de Volume da Piscina
-
-_Ferramentas essenciais para onboarding e correções paramétricas._
-
-- **Objetivo:** Auxiliar usuários a ajustarem medidas sem sair do app.
-- **Funcionalidades:**
-  - Módulo `/calculadoras/piscina`: Fórmulas exatas para retangular, redonda e oval (profundidade média).
-  - Central de ferramentas `/calculadoras`: Conversões (L/m³), Regra de 3 simples, dosagens sandbox.
-- **Impacto no Usuário:** Utilitário conveniente que evita troca de abas e apps de calculadora.
-- **Dependências:** Nenhuma.
-- **Complexidade Estimada:** Baixa.
-- **Sugestões Técnicas:**
-  - Focar no **Client-Side Rendering (CSR)** com React State para cálculos instantâneos e interativos, evitando latência com Server Actions desnecessárias.
-
-### Fase 5 — Estoque Inteligente e Insights Avançados
-
-_Fechando o ciclo atual com alertas, automação e BI básico._
-
-- **Objetivo:** Prevenir problemas de água verde por falta de produto e prover relatórios.
-- **Funcionalidades:**
-  - Alertas push e dashboard visual de estoque baixo e produtos próximos ao vencimento.
-  - Previsões financeiras baseadas no consumo ("Será necessário comprar produto mês que vem").
-  - Analytics gerenciais (Custo por litro da piscina, Produto mais eficiente, etc.).
-- **Impacto no Usuário:** Gestão preditiva. Nenhuma surpresa financeira.
-- **Dependências:** Fase 3 (para métricas e histórico contínuos).
-- **Complexidade Estimada:** Alta.
-- **Sugestões Técnicas:**
-  - Criar views materializadas (`CREATE MATERIALIZED VIEW`) no Supabase para processamento dos dashboards pesados.
-  - Conectar Edge Functions a cron jobs via `pg_cron` para checagem de estoque diário.
+- CRUD completo de produtos (tela `/produtos`)
+- Atributos base: categoria química, concentração, validade, estoque, fabricante
+- Ativar/Inativar produtos
+- Tabela `products` com RLS restrito ao `user_id`
 
 ---
 
-## 🔮 Fase 6 e Além (Evolução Futura & SaaS)
+### ✅ Fase 2 — Dosagem Personalizada por Produto
 
-_Oportunidades de crescimento e monetização em longo prazo._
+_O grande diferencial técnico: cálculos baseados nas regras de cada produto._
 
-1. **Gestão Multitenancy (B2B):** Capacidade para piscineiros gerirem dezenas de piscinas simultaneamente com múltiplos escopos.
-2. **Diagnóstico IA (LLM) & Câmera (OCR):** Utilização da câmera via web API para ler as fitas de teste de cloro/pH, mais integração de LLMs para diagnosticar a água (ex: _água verde_, sugerir plano de supercloração).
-3. **Clima Dinâmico:** Integração com APIs meteorológicas para prever o consumo do cloro em ondas de calor.
-4. **Internet das Coisas (IoT):** Leitura via sondas de pH/ORP via webhooks abertos.
-5. **Monetização B2C:** Funcionalidades Analytics (Fase 5) atrás de paywalls usando Stripe para planos premium.
-6. **Gamificação:** "Badges" ou condecorações por manter o balanço de Langelier neutro/estável por 30 dias seguidos.
+- Campos de dosagem no produto: `dosage_reference_amount`, `dosage_reference_liters`, `dosage_effect_value`, `dosage_effect_type`
+- `calcDosages` utiliza fórmula real do produto; fallback genérico com ajuste por concentração
+- Resultados precisos: "Adicione 48g do seu Cloro HTH 90%"
+
+---
+
+### ✅ Fase 3 — Inteligência Financeira e Consumo
+
+_Transformar dados químicos em inteligência financeira._
+
+- Atributos de preço nos produtos: `price`, `price_unit`, `package_quantity`
+- Tabela `product_applications` (log imutável)
+- RPC `apply_product_usage`: valida posse, debita estoque e insere log atomicamente
+- `ApplyDosageButton` na dashboard para registrar aplicação com custo calculado
+- `ApplicationsReport` em Insights com histórico real de aplicações e total gasto
+
+---
+
+### ✅ Fase 4 — Calculadoras e Utilitários
+
+_Ferramentas essenciais para o dia a dia sem sair do app._
+
+- `/calculadoras/piscina`: volume para retangular, redonda e oval (profundidade média ou variável)
+- Conversão de unidades (L/m³)
+- Regra de três simples e composta (com abas)
+- Simulador de dosagem sandbox (sem salvar)
+- `VolumeEditor` no dashboard para atualizar volume diretamente
+- Botão "Usar este volume" na calculadora que salva no pool
+
+---
+
+### Fase 5 — Estabilidade e Polish
+
+_Fechar os gaps da versão atual antes de adicionar novas features._
+
+#### Bugs críticos
+
+- [ ] Validar `volume > 0` antes de chamar `calcDosages` — exibir aviso para configurar volume
+- [ ] Tratar `hardness = 0` como `null` (unknown) — valor 0 gera recomendação absurda
+- [ ] Limpar push subscription no logout (`DELETE /api/push/subscribe` em `signOut`)
+- [ ] Comparação de datas de tarefas considerar timezone do usuário (atualmente usa UTC)
+- [ ] `ApplyDosageButton` exibir mensagem de erro quando estoque insuficiente
+- [ ] `DosageSandbox` receber produtos ativos como prop (evitar fetch duplicado e usar fórmulas personalizadas)
+
+#### UX — Quick Wins
+
+- [ ] **Toast de feedback** após qualquer ação (salvar, deletar, aplicar dosagem)
+- [ ] **Botão de submit com loading** — `disabled` + spinner enquanto Server Action processa
+- [ ] **Estado vazio com CTA** em medições, tarefas e produtos quando a lista está vazia
+- [ ] **`measured_at` editável** — `<input type="datetime-local">` com valor padrão `now()`
+- [ ] **Confirmação de exclusão** padronizada em todos os deletes (hoje inconsistente)
+
+#### Arquitetura
+
+- [ ] **Retorno de erro nas Server Actions** — padrão `{ ok: boolean; error?: string }` com exibição no modal
+- [ ] **`error.tsx`** nas rotas `/`, `/medicoes`, `/produtos`, `/tarefas`
+- [ ] **Separar `queries.ts`** por domínio: `queries/pools.ts`, `queries/measurements.ts`, etc.
+- [ ] **Supabase types gerados via CLI** — `supabase gen types typescript` como script no `package.json`
+
+#### Acessibilidade
+
+- [ ] `aria-label` e `title` em cada link do `BottomNav`
+- [ ] Texto descritivo no `StatusBadge` (não só cor) para leitores de tela
+- [ ] Foco preso dentro do `Modal` ao abrir (trap focus via `Tab`)
+
+#### Banco
+
+- [ ] Índices faltantes:
+  ```sql
+  CREATE INDEX measurements_measured_at_idx ON measurements (measured_at DESC);
+  CREATE INDEX tasks_next_due_idx ON tasks (next_due ASC);
+  CREATE INDEX product_applications_applied_at_idx ON product_applications (applied_at DESC);
+  ```
+
+---
+
+### Fase 6 — Features de Retenção
+
+_Funcionalidades que aumentam o uso contínuo e reduzem o churn._
+
+#### Medições e tarefas
+
+- [ ] **Edição de medições** — modal com `defaultValues` para corrigir valores errados
+- [ ] **Edição de tarefas** — alterar título, categoria e frequência após criação
+- [ ] **Notas de medição exibidas** no histórico (campo existe no banco, não aparece na UI)
+
+#### Estoque e alertas
+
+- [ ] **Banner de estoque baixo** — alerta visual em `/produtos` quando `quantity ≤ limiar` ou `expiration_date ≤ 30 dias`
+- [ ] **Lista de compras automática** — gerar lista de produtos com estoque baixo; exportar como texto ou PDF
+- [ ] **Notificações push automáticas via cron** — configurar Vercel Cron Jobs para chamar `/api/push/notify` diariamente
+
+#### Exportação
+
+- [ ] **Relatório PDF mensal** — parâmetros, dosagens aplicadas, custos e tarefas do mês (`@react-pdf/renderer` ou `jsPDF`)
+
+#### Dashboard
+
+- [ ] **Modo "Medição Rápida"** — formulário mínimo no dashboard (pH + cloro) sem abrir `/medicoes`
+- [ ] Unificar `CostReport` e `ApplicationsReport` em Insights — hoje têm propósitos sobrepostos confusos
+
+#### Banco
+
+- [ ] **Soft delete** em `measurements` e `products` — coluna `deleted_at TIMESTAMPTZ DEFAULT NULL`; filtrar `WHERE deleted_at IS NULL`
+- [ ] **Idempotência na RPC `apply_product_usage`** — `idempotency_key UUID` para evitar double-submit
+
+---
+
+### Fase 7 — Inteligência
+
+_Tornar o app preditivo e contextual._
+
+#### IA química
+
+- [ ] **Diagnóstico por IA (Claude API)** — botão "Explicar situação da piscina" que gera análise em linguagem natural: estado atual, causas prováveis, plano de ação passo a passo
+- [ ] **Sugestão inteligente de correção** — IA considera produtos em estoque ao recomendar (ex: "Você tem Cloro HTH, use 48g antes do tratamento de pH")
+
+#### Análise de dados
+
+- [ ] **Linha de tendência no gráfico** — regressão linear simples indicando se parâmetro está subindo ou descendo
+- [ ] **Previsão de esgotamento** — "Com base no consumo médio, seu cloro acaba em ~X dias"
+- [ ] **Índice de Saturação de Langelier (ISL)** — cálculo avançado de equilíbrio (pH + alcalinidade + dureza + temperatura + TDS); ISL ideal: −0.3 a +0.3
+
+#### Contexto externo
+
+- [ ] **Integração climática** — Open-Meteo API (gratuita) para alertar quando temperatura alta vai acelerar consumo de cloro
+
+#### Múltiplas piscinas
+
+- [ ] **Suporte a múltiplas piscinas por usuário** — seletor de piscina ativa no Header; todos os componentes recebem `poolId` como prop/parâmetro; preparar migração dos usuários existentes
+
+#### Performance
+
+- [ ] **Paginação por cursor** no histórico de medições e aplicações
+- [ ] **Views materializadas** no Supabase para médias mensais e total de gastos (atualizadas via trigger)
+- [ ] **Downsampling no gráfico** — média diária quando houver mais de 30 medições
+- [ ] **Offline cache** no service worker para a dashboard (Stale-While-Revalidate para última medição)
+
+#### Qualidade
+
+- [ ] **Testes de `finance.ts`** — cálculo de custo por unidade (lógica de dinheiro crítica)
+- [ ] **Testes de `calculators/volume.ts`** — fórmulas geométricas para cada formato de piscina
+- [ ] **Separar `chemistry.ts`** em `chemistry/parameters.ts` e `chemistry/dosage.ts`
+- [ ] **Constantes de dosagem nomeadas** — remover números mágicos das fórmulas de `calcDosages`
+
+---
+
+### Fase 8 — SaaS / Crescimento
+
+_Oportunidades de monetização e expansão de mercado._
+
+#### OCR e automação de entrada
+
+- [ ] **OCR de fita de teste** — usuário fotografa a fita; app usa Vision API (Google ou Claude multimodal) para ler valores de pH/cloro automaticamente e pré-preencher o formulário
+
+#### Modo profissional (B2B)
+
+- [ ] **Gestão multitenancy para piscineiros** — um piscineiro gerencia piscinas de vários clientes; relatórios por cliente; histórico de visitas; envio automático de relatório ao cliente por e-mail
+- [ ] **Planos de assinatura** — mensal/anual por número de piscinas gerenciadas (Stripe)
+
+#### Social e retenção
+
+- [ ] **Compartilhamento familiar** — convidar outro usuário para co-gerenciar a mesma piscina (sistema de invites + modelo de permissão)
+- [ ] **Gamificação** — badges por consistência: "30 dias com água ideal", "Nunca perdeu tarefa em 3 meses", "Químico Expert"; histórico de conquistas
+
+#### Ecossistema
+
+- [ ] **Marketplace afiliados** — ao recomendar produto não disponível em estoque, exibir link de compra (Amazon/Mercado Livre) com comissão de afiliado
+- [ ] **API pública + Webhooks** — endpoint para apps de terceiros consultarem estado da piscina e receberem alertas; base para assistentes de voz e automação residencial
+- [ ] **IoT e sondas automáticas** — webhook aberto para sondas de pH/ORP/cloro (Flipr, Violet, PoolLab) enviarem leituras automaticamente
+
+---
+
+## Prioridades por impacto × esforço
+
+| Prioridade | Item | Fase | Impacto | Esforço |
+|---|---|---|---|---|
+| 🔴 Crítico | Validar volume > 0 antes de dosagem | 5 | Alto | Muito baixo |
+| 🔴 Crítico | Toast de feedback pós-ação | 5 | Alto | Muito baixo |
+| 🔴 Crítico | Botão submit com loading | 5 | Alto | Muito baixo |
+| 🔴 Crítico | Retorno de erro nas Server Actions | 5 | Alto | Médio |
+| 🟠 Alta | Estado vazio com CTA | 5 | Alto | Baixo |
+| 🟠 Alta | Notificações push via cron | 6 | Alto | Baixo |
+| 🟠 Alta | Alerta de estoque baixo e vencimento | 6 | Alto | Baixo |
+| 🟠 Alta | Edição de medições e tarefas | 6 | Alto | Baixo |
+| 🟡 Média | Diagnóstico por IA (Claude API) | 7 | Muito alto | Médio |
+| 🟡 Média | Índices faltantes no banco | 5 | Médio | Muito baixo |
+| 🟡 Média | Linha de tendência no gráfico | 7 | Médio | Baixo |
+| 🟡 Média | Soft delete em medições/produtos | 6 | Médio | Baixo |
+| 🟢 Longo prazo | OCR de fita de teste | 8 | Muito alto | Alto |
+| 🟢 Longo prazo | Modo profissional B2B | 8 | Muito alto | Muito alto |
+| 🟢 Longo prazo | Múltiplas piscinas | 7 | Alto | Alto |
+| 🟢 Longo prazo | Compartilhamento familiar | 8 | Médio | Alto |

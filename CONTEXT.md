@@ -81,9 +81,10 @@ src/
 │   │   ├── Modal.tsx               # Centralizado, z-[60], scrollável, fecha com Esc
 │   │   ├── ParameterCard.tsx       # Card com barra de progresso relativa ao ideal
 │   │   ├── Skeleton.tsx            # DashboardSkeleton, ListSkeleton
-│   │   └── StatusBadge.tsx         # <StatusBadge> e <StatusDot> por ParameterStatus
+│   │   ├── StatusBadge.tsx         # <StatusBadge> e <StatusDot> por ParameterStatus
+│   │   └── CurrencyInput.tsx       # Input formatado em BRL (R$) para formulários de produto
 │   ├── layout/
-│   │   ├── BottomNav.tsx           # 4 abas: Dashboard, Medições, Tarefas, Insights
+│   │   ├── BottomNav.tsx           # 6 abas: Início, Medições, Tarefas, Produtos, Cálculos, Insights
 │   │   ├── Header.tsx              # title + subtitle + action slot
 │   │   └── LogoutButton.tsx        # form action → signOut
 │   ├── dashboard/
@@ -91,9 +92,12 @@ src/
 │   │   ├── TasksPreview.tsx        # Server Component — 3 tarefas mais urgentes
 │   │   ├── CreatePoolForm.tsx      # Client Component — onboarding de nova piscina
 │   │   ├── DosageCard.tsx          # Lista de recomendações com prioridade
+│   │   ├── ApplyDosageButton.tsx   # Client Component — registra aplicação de produto e debita estoque
+│   │   ├── VolumeEditor.tsx        # Client Component — edita o volume da piscina inline
 │   │   └── OverallStatusCard.tsx   # Banner de status geral (ok/warning/danger/unknown)
 │   ├── measurements/
-│   │   └── NewMeasurementButton.tsx  # Abre Modal com form; chama addMeasurement
+│   │   ├── NewMeasurementButton.tsx    # Abre Modal com form; chama addMeasurement
+│   │   └── DeleteMeasurementButton.tsx # Exclusão com confirmação
 │   ├── tasks/
 │   │   ├── TaskItem.tsx            # Item com ícone por categoria + CompleteTaskButton
 │   │   ├── CompleteTaskButton.tsx  # Chama completeTask; spinner durante pending
@@ -107,11 +111,14 @@ src/
 │   │   ├── PoolVolumeCalculator.tsx
 │   │   ├── ConverterCalculator.tsx
 │   │   ├── RuleOfThreeCalculator.tsx
+│   │   ├── CompoundRuleOfThreeCalculator.tsx  # Regra de três composta
+│   │   ├── RuleOfThreeTabs.tsx               # Wrapper com abas (simples / composta)
 │   │   └── DosageSandbox.tsx
 │   ├── insights/
-│   │   ├── ParameterChart.tsx      # Recharts LineChart (Client Component puro)
+│   │   ├── ParameterChart.tsx        # Recharts LineChart (Client Component puro)
 │   │   ├── ParameterChartClient.tsx  # Wrapper com next/dynamic ssr:false
-│   │   └── CostReport.tsx          # Calcula custo estimado a partir do histórico
+│   │   ├── CostReport.tsx            # Custo estimado calculado retrospectivamente
+│   │   └── ApplicationsReport.tsx    # Relatório de aplicações reais de produtos com custo
 │   ├── push/
 │   │   └── NotificationSetup.tsx   # Solicita permissão; salva/remove subscription
 │   └── pwa/
@@ -119,7 +126,13 @@ src/
 │
 ├── lib/
 │   ├── chemistry.ts                # buildParameters(), calcDosages(), overallStatus()
+│   ├── currency.ts                 # Formatação de valores em BRL
+│   ├── finance.ts                  # Cálculos de custo baseados em aplicações de produtos
 │   ├── mocks.ts                    # Dados estáticos — não usados em produção
+│   ├── calculators/
+│   │   └── volume.ts               # Cálculo de volume por formato de piscina (retangular, oval, redonda, L)
+│   ├── __tests__/
+│   │   └── chemistry.test.ts       # Testes unitários de chemistry.ts (Vitest)
 │   └── supabase/
 │       ├── client.ts               # createBrowserClient<Database> — Client Components
 │       ├── server.ts               # createServerClient<Database> com cookies — Server Components
