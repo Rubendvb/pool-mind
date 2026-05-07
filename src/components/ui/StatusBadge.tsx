@@ -23,5 +23,17 @@ export function StatusDot({ status }: { status: ParameterStatus }) {
     danger: "bg-status-danger shadow-[0_0_6px_theme(colors.status-danger)] animate-pulse",
     unknown: "bg-white/30",
   };
-  return <span className={`inline-block w-2.5 h-2.5 rounded-full ${colors[status]}`} />;
+  const labels: Record<ParameterStatus, string> = {
+    ok: "Status: ideal",
+    warning: "Status: atenção",
+    danger: "Status: perigo",
+    unknown: "Status: desconhecido",
+  };
+  return (
+    <span
+      role="img"
+      aria-label={labels[status]}
+      className={`inline-block w-2.5 h-2.5 rounded-full ${colors[status]}`}
+    />
+  );
 }

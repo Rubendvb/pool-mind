@@ -1,13 +1,20 @@
 "use client";
 import { useState } from "react";
 import { completeTask } from "@/app/(app)/tarefas/actions";
+import { useToast } from "@/components/ui/Toast";
 
 export function CompleteTaskButton({ taskId }: { taskId: string }) {
   const [pending, setPending] = useState(false);
+  const { toast } = useToast();
 
   async function handleClick() {
     setPending(true);
-    await completeTask(taskId);
+    const result = await completeTask(taskId);
+    if (result?.error) {
+      toast(result.error, "error");
+    } else {
+      toast("Tarefa concluída!");
+    }
     setPending(false);
   }
 

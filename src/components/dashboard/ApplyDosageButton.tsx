@@ -4,6 +4,7 @@ import type { Product, DosageRecommendation } from "@/types";
 import { confirmProductApplication } from "@/app/(app)/actions";
 import { calcApplicationCost, formatCurrency } from "@/lib/finance";
 import { Modal } from "@/components/ui/Modal";
+import { useToast } from "@/components/ui/Toast";
 
 interface Props {
   dosage: DosageRecommendation;
@@ -21,6 +22,7 @@ export function ApplyDosageButton({ dosage, product, measurementId }: Props) {
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
 
   const qtyNum = parseFloat(qty) || 0;
   const cost = calcApplicationCost(qtyNum, dosage.unit, product);
@@ -50,6 +52,7 @@ export function ApplyDosageButton({ dosage, product, measurementId }: Props) {
         setError(result.error);
       } else {
         setOpen(false);
+        toast("Aplicação registrada!");
       }
     });
   }

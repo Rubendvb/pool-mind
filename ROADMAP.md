@@ -69,48 +69,43 @@ _Ferramentas essenciais para o dia a dia sem sair do app._
 
 ---
 
-### Fase 5 — Estabilidade e Polish
+### ✅ Fase 5 — Estabilidade e Polish
 
 _Fechar os gaps da versão atual antes de adicionar novas features._
 
 #### Bugs críticos
 
-- [ ] Validar `volume > 0` antes de chamar `calcDosages` — exibir aviso para configurar volume
-- [ ] Tratar `hardness = 0` como `null` (unknown) — valor 0 gera recomendação absurda
-- [ ] Limpar push subscription no logout (`DELETE /api/push/subscribe` em `signOut`)
-- [ ] Comparação de datas de tarefas considerar timezone do usuário (atualmente usa UTC)
-- [ ] `ApplyDosageButton` exibir mensagem de erro quando estoque insuficiente
-- [ ] `DosageSandbox` receber produtos ativos como prop (evitar fetch duplicado e usar fórmulas personalizadas)
+- [x] Validar `volume > 0` antes de chamar `calcDosages` — banner de aviso em `ChemicalSection`
+- [x] Tratar `hardness = 0` como `null` (unknown) — corrigido em `chemistry.ts`
+- [x] Limpar push subscription no logout — `LogoutButton` chama `DELETE /api/push/subscribe` antes de `signOut`
+- [x] Comparação de datas de tarefas com timezone — `getTasks` usa `Intl.DateTimeFormat` com `America/Sao_Paulo`
+- [x] `CompleteTaskButton` não tratava erro retornado por `completeTask` — corrigido
+- [x] `DosageSandbox` já recebia produtos como prop (confirmado); `ApplyDosageButton` já exibia erros da RPC
 
 #### UX — Quick Wins
 
-- [ ] **Toast de feedback** após qualquer ação (salvar, deletar, aplicar dosagem)
-- [ ] **Botão de submit com loading** — `disabled` + spinner enquanto Server Action processa
-- [ ] **Estado vazio com CTA** em medições, tarefas e produtos quando a lista está vazia
-- [ ] **`measured_at` editável** — `<input type="datetime-local">` com valor padrão `now()`
-- [ ] **Confirmação de exclusão** padronizada em todos os deletes (hoje inconsistente)
+- [x] **Toast de feedback** — `ToastProvider` no layout; `useToast` em todos os componentes de mutação
+- [x] **Botão de submit com loading** — já implementado na maioria; `CompleteTaskButton` tem spinner
+- [x] **Estado vazio com CTA** — já implementado em medições, tarefas e produtos
+- [x] **`measured_at` editável** — campo `datetime-local` no formulário de nova medição
+- [x] **Confirmação de exclusão** — já padronizada com `Modal` em medições e produtos
 
 #### Arquitetura
 
-- [ ] **Retorno de erro nas Server Actions** — padrão `{ ok: boolean; error?: string }` com exibição no modal
-- [ ] **`error.tsx`** nas rotas `/`, `/medicoes`, `/produtos`, `/tarefas`
-- [ ] **Separar `queries.ts`** por domínio: `queries/pools.ts`, `queries/measurements.ts`, etc.
-- [ ] **Supabase types gerados via CLI** — `supabase gen types typescript` como script no `package.json`
+- [x] **Retorno de erro nas Server Actions** — já implementado na maioria; `CompleteTaskButton` corrigido
+- [x] **`error.tsx`** — criado em `(app)/error.tsx` (cobre todas as subrotas do grupo)
+- [ ] **Separar `queries.ts`** por domínio — adiado para não impactar velocidade da Fase 6
+- [x] **Script `gen:types`** — `npm run gen:types` adicionado ao `package.json`
 
 #### Acessibilidade
 
-- [ ] `aria-label` e `title` em cada link do `BottomNav`
-- [ ] Texto descritivo no `StatusBadge` (não só cor) para leitores de tela
-- [ ] Foco preso dentro do `Modal` ao abrir (trap focus via `Tab`)
+- [x] `aria-label` e `aria-current` em cada link do `BottomNav`
+- [x] `StatusDot` com `role="img"` e `aria-label` por status
+- [x] Focus trap no `Modal` — implementado com `useRef` + interceptação de `Tab`; `role="dialog"` e `aria-modal` adicionados
 
 #### Banco
 
-- [ ] Índices faltantes:
-  ```sql
-  CREATE INDEX measurements_measured_at_idx ON measurements (measured_at DESC);
-  CREATE INDEX tasks_next_due_idx ON tasks (next_due ASC);
-  CREATE INDEX product_applications_applied_at_idx ON product_applications (applied_at DESC);
-  ```
+- [x] Migration `007_performance_indexes.sql` — índices compostos em `measurements`, `tasks` e `product_applications`
 
 ---
 

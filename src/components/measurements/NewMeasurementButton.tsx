@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
+import { useToast } from "@/components/ui/Toast";
 import { addMeasurement } from "@/app/(app)/medicoes/actions";
 
 interface Props {
@@ -15,22 +16,36 @@ const fields = [
   { name: "hardness", label: "Dureza (mg/L) — opcional", min: "0", max: "1000", step: "1", placeholder: "200 – 400", required: false },
 ];
 
+function localDatetimeValue() {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+}
+
 export function NewMeasurementButton({ poolId, poolVolume }: Props) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setPending(true);
     setError(null);
-    const result = await addMeasurement(poolId, new FormData(e.currentTarget));
+
+    const formData = new FormData(e.currentTarget);
+    // Convert datetime-local string (no timezone) to ISO with browser's local timezone
+    const raw = formData.get("measured_at") as string;
+    if (raw) formData.set("measured_at", new Date(raw).toISOString());
+
+    const result = await addMeasurement(poolId, formData);
     if (result?.error) {
       setError(result.error);
       setPending(false);
     } else {
       setOpen(false);
       setPending(false);
+      toast("Medição salva!");
     }
   }
 
@@ -45,6 +60,17 @@ export function NewMeasurementButton({ poolId, poolVolume }: Props) {
 
       <Modal open={open} onClose={() => setOpen(false)} title="Nova Medição">
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-ocean-400 font-medium">Data e hora da medição</label>
+            <input
+              name="measured_at"
+              type="datetime-local"
+              defaultValue={localDatetimeValue()}
+              required
+              className="glass px-3 py-2.5 text-white outline-none focus:ring-1 focus:ring-ocean-500 rounded-xl text-sm"
+            />
+          </div>
+          <div className="border-t border-white/10 my-1" />
           <div className="flex flex-col gap-1">
             <label className="text-xs text-ocean-400 font-medium">Volume atual da piscina (L)</label>
             <input

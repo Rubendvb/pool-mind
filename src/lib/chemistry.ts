@@ -57,8 +57,10 @@ export function buildParameters(m: Measurement): ChemicalParameter[] {
       value: m.hardness,
       unit: "mg/L",
       ideal: IDEALS.hardness,
+      // Treat 0 as unknown — a reading of 0 hardness is not physically plausible
+      // and almost certainly means "not measured".
       status:
-        m.hardness !== null
+        m.hardness !== null && m.hardness > 0
           ? getStatus(m.hardness, IDEALS.hardness.min, IDEALS.hardness.max)
           : "unknown",
     },
@@ -236,8 +238,8 @@ export function calcDosages(
     recs.push({ product: productName, amount, unit, action: "add", priority: "soon", productId });
   }
 
-  // Hardness correction
-  if (m.hardness !== null && m.hardness < IDEALS.hardness.min) {
+  // Hardness correction (skip if null or 0 — treated as "not measured")
+  if (m.hardness !== null && m.hardness > 0 && m.hardness < IDEALS.hardness.min) {
     const delta = IDEALS.hardness.min - m.hardness;
     const genericAmount = Math.ceil((delta / 10) * 15 * (volumeLiters / 10000));
     const userProduct = findBestProduct(products, "hardness_up", today);

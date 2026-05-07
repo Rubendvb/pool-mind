@@ -1,12 +1,14 @@
 "use client";
 import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
+import { useToast } from "@/components/ui/Toast";
 import { addTask } from "@/app/(app)/tarefas/actions";
 
 export function NewTaskButton() {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -21,6 +23,7 @@ export function NewTaskButton() {
     } else {
       setOpen(false);
       setPending(false);
+      toast("Tarefa criada!");
     }
   }
 

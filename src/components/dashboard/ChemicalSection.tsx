@@ -18,10 +18,18 @@ export async function ChemicalSection({ poolId, poolVolume, poolName }: Props) {
   const latest = measurements[0] ?? null;
   const params = latest ? buildParameters(latest) : [];
   const status = latest ? overallStatus(params) : ("unknown" as const);
-  const dosages = latest ? calcDosages(latest, poolVolume, products) : [];
+  const dosages = latest && poolVolume > 0 ? calcDosages(latest, poolVolume, products) : [];
 
   return (
     <>
+      {poolVolume <= 0 && (
+        <div className="glass p-3 flex items-center gap-2 border border-status-warning/30 rounded-xl">
+          <span className="text-sm">⚠️</span>
+          <p className="text-xs text-status-warning">
+            Volume da piscina não configurado. As dosagens não serão calculadas.
+          </p>
+        </div>
+      )}
       <OverallStatusCard
         status={status}
         poolName={poolName}

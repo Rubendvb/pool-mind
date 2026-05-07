@@ -41,7 +41,11 @@ export const getProducts = cache(async (): Promise<Product[]> => {
 
 export const getTasks = cache(async () => {
   const supabase = await createClient();
-  const today = new Date().toISOString().split("T")[0];
+  // Use Intl to get today's date in Brazil's timezone so task status is
+  // correct regardless of where the server runs (UTC on most cloud hosts).
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+  }).format(new Date());
 
   const { data } = await supabase
     .from("tasks")

@@ -41,6 +41,7 @@ export async function addMeasurement(poolId: string, formData: FormData) {
   if (poolError) return { error: poolError.message };
 
   const hardnessRaw = formData.get("hardness") as string;
+  const measuredAtRaw = formData.get("measured_at") as string;
 
   const { error } = await supabase.from("measurements").insert({
     pool_id: poolId,
@@ -49,6 +50,7 @@ export async function addMeasurement(poolId: string, formData: FormData) {
     alkalinity: Number(formData.get("alkalinity")),
     hardness: hardnessRaw !== "" ? Number(hardnessRaw) : null,
     notes: (formData.get("notes") as string) || null,
+    ...(measuredAtRaw ? { measured_at: measuredAtRaw } : {}),
   });
 
   if (error) return { error: error.message };

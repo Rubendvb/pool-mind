@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
+import { useToast } from "@/components/ui/Toast";
 import { addProduct, updateProduct } from "@/app/(app)/produtos/actions";
 import type { Product, ProductCategory, ProductUnit, DosageEffectType } from "@/types";
 
@@ -48,6 +49,7 @@ export function ProductFormButton({ product }: Props) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
   const [showDosage, setShowDosage] = useState(
     !!(product?.dosage_reference_amount || product?.dosage_effect_value)
   );
@@ -74,6 +76,7 @@ export function ProductFormButton({ product }: Props) {
     } else {
       setOpen(false);
       setPending(false);
+      toast(isEdit ? "Produto atualizado!" : "Produto adicionado!");
     }
   }
 
