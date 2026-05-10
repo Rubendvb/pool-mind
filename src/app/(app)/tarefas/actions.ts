@@ -40,6 +40,22 @@ export async function updateTask(taskId: string, formData: FormData) {
   revalidatePath("/");
 }
 
+export async function deleteTask(taskId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Não autenticado" };
+
+  const { error } = await supabase
+    .from("tasks")
+    .delete()
+    .eq("id", taskId)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+  revalidatePath("/tarefas");
+  revalidatePath("/");
+}
+
 export async function completeTask(taskId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

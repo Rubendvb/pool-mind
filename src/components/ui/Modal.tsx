@@ -12,6 +12,12 @@ const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select
 
 export function Modal({ open, onClose, title, children }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+
+  // Mantém o ref sempre atualizado sem re-executar o effect principal
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     if (!open || !containerRef.current) return;
@@ -24,7 +30,7 @@ export function Modal({ open, onClose, title, children }: Props) {
     document.body.classList.add("overflow-hidden");
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { onClose(); return; }
+      if (e.key === "Escape") { onCloseRef.current(); return; }
       if (e.key !== "Tab" || !focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -40,7 +46,7 @@ export function Modal({ open, onClose, title, children }: Props) {
       window.removeEventListener("keydown", onKey);
       document.body.classList.remove("overflow-hidden");
     };
-  }, [open, onClose]);
+  }, [open]); // onClose removido das deps — acessado via ref para evitar re-focus a cada re-render
 
   if (!open) return null;
 

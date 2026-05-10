@@ -1,11 +1,17 @@
+import Link from "next/link";
 import { OverallStatusCard } from "./OverallStatusCard";
 import { ParameterCard } from "@/components/ui/ParameterCard";
 import { DosageCard } from "./DosageCard";
 import { getMeasurements, getProducts, getDosageRules } from "@/lib/supabase/queries";
 import { buildParameters, calcDosages, overallStatus } from "@/lib/chemistry";
 import { log } from "@/lib/logger";
-import type { Product, ProductDosageRule } from "@/types";
-import type { Measurement } from "@/types";
+import type { Product, ProductDosageRule, Measurement } from "@/types";
+
+function isLowStock(p: Product): boolean {
+  if (p.quantity === null || !p.is_active) return false;
+  if (p.unit === "kg" || p.unit === "L") return p.quantity <= 1;
+  return p.quantity <= 500;
+}
 
 interface Props {
   poolId: string;
@@ -35,10 +41,12 @@ export async function ChemicalSection({ poolId, poolVolume, poolName }: Props) {
       </div>
     );
   }
+
   const latest = measurements[0] ?? null;
   const params = latest ? buildParameters(latest) : [];
   const status = latest ? overallStatus(params) : ("unknown" as const);
   const dosages = latest && poolVolume > 0 ? calcDosages(latest, poolVolume, products, rules) : [];
+  const lowStock = products.filter(isLowStock);
 
   return (
     <>
@@ -50,6 +58,23 @@ export async function ChemicalSection({ poolId, poolVolume, poolName }: Props) {
           </p>
         </div>
       )}
+
+      {lowStock.length > 0 && (
+        <Link
+          href="/produtos"
+          className="glass border border-status-warning/30 rounded-2xl px-4 py-3 flex items-start gap-3 hover:border-status-warning/60 transition-colors"
+        >
+          <span className="text-base flex-shrink-0 mt-0.5">⚠️</span>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-status-warning">Estoque baixo</p>
+            <p className="text-xs text-ocean-300 mt-0.5 leading-relaxed">
+              {lowStock.map((p) => p.name).join(", ")} —{" "}
+              {lowStock.length === 1 ? "repor em breve" : "repor em breve"}.
+            </p>
+          </div>
+        </Link>
+      )}
+
       <OverallStatusCard
         status={status}
         poolName={poolName}

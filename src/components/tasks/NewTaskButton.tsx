@@ -68,6 +68,7 @@ export function NewTaskButton() {
                 required
                 className="glass px-3 py-2.5 text-white outline-none focus:ring-1 focus:ring-ocean-500 rounded-xl text-sm bg-transparent"
               >
+                <option value="unica" className="bg-ocean-900">Única vez</option>
                 <option value="diaria" className="bg-ocean-900">Diária</option>
                 <option value="semanal" className="bg-ocean-900">Semanal</option>
                 <option value="quinzenal" className="bg-ocean-900">Quinzenal</option>

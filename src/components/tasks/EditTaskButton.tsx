@@ -63,6 +63,7 @@ export function EditTaskButton({ task }: { task: Task }) {
             <div className="flex flex-col gap-1">
               <label className="text-xs text-ocean-400 font-medium">Frequência</label>
               <select name="frequency" required defaultValue={task.frequency} className={selectClass}>
+                <option value="unica"     style={{ background: "#03045e" }}>Única vez</option>
                 <option value="diaria"    style={{ background: "#03045e" }}>Diária</option>
                 <option value="semanal"   style={{ background: "#03045e" }}>Semanal</option>
                 <option value="quinzenal" style={{ background: "#03045e" }}>Quinzenal</option>

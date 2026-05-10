@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { ApplicationsReport } from "@/components/insights/ApplicationsReport";
+import { MonthlyFinanceReport } from "@/components/insights/MonthlyFinanceReport";
 import { NotificationSetup } from "@/components/push/NotificationSetup";
 import { ParameterChartClient } from "@/components/insights/ParameterChartClient";
 import { getPool, getMeasurements, getApplications } from "@/lib/supabase/queries";
@@ -12,21 +13,22 @@ export default async function InsightsPage() {
     return (
       <main className="pb-24 max-w-lg mx-auto w-full">
         <Header
-        title="Insights"
-        subtitle="Nenhuma piscina cadastrada"
-        action={
-          <Link href="/configuracoes" aria-label="Configurações" className="p-2 rounded-xl text-ocean-400/60 hover:text-ocean-300 hover:bg-white/10 transition-all">
-            ⚙️
-          </Link>
-        }
-      />
+          title="Insights"
+          subtitle="Nenhuma piscina cadastrada"
+          action={
+            <Link href="/configuracoes" aria-label="Configurações" className="p-2 rounded-xl text-ocean-400/60 hover:text-ocean-300 hover:bg-white/10 transition-all">
+              ⚙️
+            </Link>
+          }
+        />
       </main>
     );
   }
 
+  // 200 applications cobre ~6 meses de histórico para o relatório mensal
   const [measurements, applications] = await Promise.all([
     getMeasurements(pool.id, 20),
-    getApplications(30),
+    getApplications(200),
   ]);
 
   const avgPh = measurements.length
@@ -88,6 +90,14 @@ export default async function InsightsPage() {
             <p className="text-sm text-ocean-300">Registre pelo menos 2 medições para ver os gráficos.</p>
           </div>
         )}
+
+        {/* Relatório financeiro mensal */}
+        <section>
+          <h2 className="text-xs font-semibold text-ocean-400 uppercase tracking-wider mb-2">
+            Gastos por Mês
+          </h2>
+          <MonthlyFinanceReport applications={applications} />
+        </section>
 
         {/* Histórico de aplicações */}
         <section>

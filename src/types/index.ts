@@ -33,7 +33,7 @@ export interface Measurement {
 }
 
 export type TaskCategory = "piscina" | "casa" | "jardim";
-export type TaskFrequency = "diaria" | "semanal" | "quinzenal" | "mensal";
+export type TaskFrequency = "diaria" | "semanal" | "quinzenal" | "mensal" | "unica";
 export type TaskStatus = "pendente" | "concluida" | "atrasada";
 
 export interface Task {
