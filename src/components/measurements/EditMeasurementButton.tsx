@@ -84,7 +84,7 @@ export function EditMeasurementButton({ measurement, poolId, poolVolume }: Props
               { name: "ph", label: "pH", defaultValue: measurement.ph, step: "0.1", min: "0", max: "14" },
               { name: "chlorine", label: "Cloro Livre (mg/L)", defaultValue: measurement.chlorine, step: "0.1", min: "0", max: "20" },
               { name: "alkalinity", label: "Alcalinidade (ppm)", defaultValue: measurement.alkalinity, step: "1", min: "0", max: "500" },
-              { name: "hardness", label: "Dureza (mg/L) — opcional", defaultValue: measurement.hardness ?? "", step: "1", min: "0", max: "1000" },
+              { name: "hardness", label: "Dureza (mg/L) — opcional", defaultValue: measurement.hardness ?? "", step: "1", min: "1", max: "1000" },
             ].map((f) => (
               <div key={f.name} className="flex flex-col gap-1">
                 <label className="text-xs text-ocean-400 font-medium">{f.label}</label>

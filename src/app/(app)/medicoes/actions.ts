@@ -8,10 +8,20 @@ export async function deleteMeasurement(id: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Não autenticado" };
 
+  // measurements don't have user_id — ownership is verified through the pool
+  const { data: pool } = await supabase
+    .from("pools")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!pool) return { error: "Piscina não encontrada" };
+
   const { error } = await supabase
     .from("measurements")
     .update({ deleted_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("pool_id", pool.id);
 
   if (error) return { error: error.message };
 
@@ -32,6 +42,16 @@ export async function editMeasurement(id: string, formData: FormData) {
     return { error: "O volume da piscina deve ser maior que zero." };
   }
 
+  // Verify pool ownership first — measurements don't have user_id directly.
+  // This also avoids the extra post-update query that used to fetch pool_id.
+  const { data: pool } = await supabase
+    .from("pools")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!pool) return { error: "Piscina não encontrada" };
+
   const hardnessRaw = formData.get("hardness") as string;
   const measuredAtRaw = formData.get("measured_at") as string;
 
@@ -45,20 +65,12 @@ export async function editMeasurement(id: string, formData: FormData) {
       notes: (formData.get("notes") as string) || null,
       ...(measuredAtRaw ? { measured_at: measuredAtRaw } : {}),
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("pool_id", pool.id);
 
   if (mError) return { error: mError.message };
 
-  // Update pool volume from measurement edit form
-  const { data: measurement } = await supabase
-    .from("measurements")
-    .select("pool_id")
-    .eq("id", id)
-    .single();
-
-  if (measurement) {
-    await supabase.from("pools").update({ volume: poolVolume }).eq("id", measurement.pool_id);
-  }
+  await supabase.from("pools").update({ volume: poolVolume }).eq("id", pool.id);
 
   revalidatePath("/medicoes");
   revalidatePath("/");

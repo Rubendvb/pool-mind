@@ -171,7 +171,8 @@ export async function toggleProductActive(id: string, isActive: boolean) {
   const { error } = await supabase
     .from("products")
     .update({ is_active: isActive })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", user.id);
 
   if (error) return { error: error.message };
   revalidatePath("/produtos");

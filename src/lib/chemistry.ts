@@ -7,6 +7,7 @@ import type {
   ProductDosageRule,
   DosageUsageType,
 } from "@/types";
+import { getTodayBrazil } from "@/lib/utils/date";
 
 const IDEALS = {
   ph: { min: 7.2, max: 7.6 },
@@ -188,7 +189,7 @@ export function calcDosages(
   products: Product[] = [],
   rules: ProductDosageRule[] = []
 ): DosageRecommendation[] {
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayBrazil();
   const recs: DosageRecommendation[] = [];
 
   // pH correction

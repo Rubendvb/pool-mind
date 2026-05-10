@@ -32,7 +32,8 @@ export async function updateTask(taskId: string, formData: FormData) {
       frequency: formData.get("frequency") as "diaria" | "semanal" | "quinzenal" | "mensal",
       next_due: formData.get("next_due") as string,
     })
-    .eq("id", taskId);
+    .eq("id", taskId)
+    .eq("user_id", user.id);
 
   if (error) return { error: error.message };
   revalidatePath("/tarefas");
@@ -41,10 +42,14 @@ export async function updateTask(taskId: string, formData: FormData) {
 
 export async function completeTask(taskId: string) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Não autenticado" };
+
   const { error } = await supabase
     .from("tasks")
     .update({ status: "concluida" })
-    .eq("id", taskId);
+    .eq("id", taskId)
+    .eq("user_id", user.id);
 
   if (error) return { error: error.message };
   revalidatePath("/tarefas");

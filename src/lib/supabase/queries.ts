@@ -1,10 +1,7 @@
 import { cache } from "react";
 import { createClient } from "./server";
-import type { Database } from "./types";
 import type { Product, ProductApplication, ProductDosageRule } from "@/types";
-
-type MeasurementInsert = Database["public"]["Tables"]["measurements"]["Insert"];
-type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
+import { getTodayBrazil } from "@/lib/utils/date";
 
 // cache() deduplica chamadas idênticas dentro do mesmo request —
 // getPool() pode ser chamado em vários Server Components sem custo extra.
@@ -43,11 +40,7 @@ export const getProducts = cache(async (): Promise<Product[]> => {
 
 export const getTasks = cache(async () => {
   const supabase = await createClient();
-  // Use Intl to get today's date in Brazil's timezone so task status is
-  // correct regardless of where the server runs (UTC on most cloud hosts).
-  const today = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Sao_Paulo",
-  }).format(new Date());
+  const today = getTodayBrazil();
 
   const { data } = await supabase
     .from("tasks")
@@ -82,42 +75,3 @@ export const getApplications = cache(async (limit = 20): Promise<ProductApplicat
   return (data ?? []) as ProductApplication[];
 });
 
-export async function completeTask(taskId: string) {
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("tasks")
-    .update({ status: "concluida" })
-    .eq("id", taskId);
-  if (error) throw error;
-}
-
-export async function insertMeasurement(
-  measurement: Omit<MeasurementInsert, "id" | "measured_at">
-) {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("measurements")
-    .insert(measurement)
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
-}
-
-export async function insertTask(
-  task: Omit<TaskInsert, "id" | "user_id" | "created_at" | "status">
-) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Não autenticado");
-
-  const { data, error } = await supabase
-    .from("tasks")
-    .insert({ ...task, user_id: user.id })
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
-}
