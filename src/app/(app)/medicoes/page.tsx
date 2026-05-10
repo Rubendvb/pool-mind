@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { ParameterCard } from "@/components/ui/ParameterCard";
 import { StatusDot } from "@/components/ui/StatusBadge";
@@ -7,7 +8,17 @@ import { EditMeasurementButton } from "@/components/measurements/EditMeasurement
 import { getPool, getMeasurements } from "@/lib/supabase/queries";
 import { buildParameters, overallStatus } from "@/lib/chemistry";
 
-export default async function MedicoesPage() {
+const PAGE_SIZE = 10;
+const MAX_LIMIT = 50;
+
+export default async function MedicoesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ limit?: string }>;
+}) {
+  const { limit: limitParam } = await searchParams;
+  const limit = Math.min(Math.max(Number(limitParam) || PAGE_SIZE, PAGE_SIZE), MAX_LIMIT);
+
   const pool = await getPool();
 
   if (!pool) {
@@ -19,7 +30,10 @@ export default async function MedicoesPage() {
     );
   }
 
-  const measurements = await getMeasurements(pool.id, 10);
+  // Fetch one extra to know if more pages exist, then slice to limit
+  const allFetched = await getMeasurements(pool.id, limit + 1);
+  const hasMore = allFetched.length > limit;
+  const measurements = hasMore ? allFetched.slice(0, limit) : allFetched;
 
   return (
     <main className="pb-24 max-w-lg mx-auto w-full">
@@ -36,6 +50,13 @@ export default async function MedicoesPage() {
             <p className="text-sm text-ocean-300 mt-2">Nenhuma medição ainda.</p>
             <p className="text-xs text-ocean-400 mt-1">Toque em "+ Nova" para registrar a primeira.</p>
           </div>
+        )}
+
+        {measurements.length > 0 && (
+          <p className="text-xs text-ocean-400/50 text-right">
+            {measurements.length} medição{measurements.length !== 1 ? "ões" : ""} exibida{measurements.length !== 1 ? "s" : ""}
+            {hasMore ? ` de ${limit + 1}+` : ""}
+          </p>
         )}
 
         {measurements.map((m, i) => {
@@ -78,6 +99,20 @@ export default async function MedicoesPage() {
             </section>
           );
         })}
+        {hasMore && (
+          <Link
+            href={`/medicoes?limit=${Math.min(limit + PAGE_SIZE, MAX_LIMIT)}`}
+            className="glass w-full py-3 text-sm font-semibold text-ocean-300 hover:text-white transition-colors rounded-xl text-center block"
+          >
+            Carregar mais
+          </Link>
+        )}
+
+        {!hasMore && measurements.length >= PAGE_SIZE && (
+          <p className="text-center text-xs text-ocean-400/40 py-2">
+            Todas as medições carregadas
+          </p>
+        )}
       </div>
     </main>
   );

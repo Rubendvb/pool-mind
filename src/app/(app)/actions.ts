@@ -1,6 +1,7 @@
 "use server";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { log } from "@/lib/logger";
 
 export async function confirmProductApplication(
   productId: string,
@@ -24,7 +25,10 @@ export async function confirmProductApplication(
     p_notes: notes,
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    log({ level: "error", action: "confirmProductApplication", userId: user.id, productId, quantityUsed, error: error.message });
+    return { error: error.message };
+  }
   revalidatePath("/");
   revalidatePath("/insights");
   revalidatePath("/produtos");

@@ -3,6 +3,9 @@ import { ParameterCard } from "@/components/ui/ParameterCard";
 import { DosageCard } from "./DosageCard";
 import { getMeasurements, getProducts, getDosageRules } from "@/lib/supabase/queries";
 import { buildParameters, calcDosages, overallStatus } from "@/lib/chemistry";
+import { log } from "@/lib/logger";
+import type { Product, ProductDosageRule } from "@/types";
+import type { Measurement } from "@/types";
 
 interface Props {
   poolId: string;
@@ -11,11 +14,27 @@ interface Props {
 }
 
 export async function ChemicalSection({ poolId, poolVolume, poolName }: Props) {
-  const [measurements, products, rules] = await Promise.all([
-    getMeasurements(poolId, 1),
-    getProducts(),
-    getDosageRules(),
-  ]);
+  let measurements: Measurement[] = [];
+  let products: Product[] = [];
+  let rules: ProductDosageRule[] = [];
+
+  try {
+    [measurements, products, rules] = await Promise.all([
+      getMeasurements(poolId, 1),
+      getProducts(),
+      getDosageRules(),
+    ]);
+  } catch (err) {
+    log({ level: "error", action: "ChemicalSection", poolId, error: String(err) });
+    return (
+      <div className="glass p-4 flex items-center gap-2 border border-status-danger/30 rounded-xl">
+        <span className="text-base flex-shrink-0">⚠️</span>
+        <p className="text-sm text-status-danger">
+          Erro ao carregar dados químicos. Recarregue a página para tentar novamente.
+        </p>
+      </div>
+    );
+  }
   const latest = measurements[0] ?? null;
   const params = latest ? buildParameters(latest) : [];
   const status = latest ? overallStatus(params) : ("unknown" as const);

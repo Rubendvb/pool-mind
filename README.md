@@ -1,5 +1,7 @@
 # Pool Mind
 
+![CI](https://github.com/Rubendvb/pool-mind/actions/workflows/ci.yml/badge.svg)
+
 PWA de controle químico e manutenção de piscinas. Registre medições, receba diagnósticos automáticos com dosagens calculadas por volume e gerencie tarefas recorrentes de manutenção.
 
 ---
@@ -49,16 +51,13 @@ npm install
 
 ### Variáveis de ambiente
 
-Crie o arquivo `.env` na raiz com:
+Copie o arquivo de exemplo e preencha com seus valores:
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://<projeto>.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<anon-key>
-NEXT_PUBLIC_VAPID_PUBLIC_KEY=<vapid-public>
-VAPID_PRIVATE_KEY=<vapid-private>
-VAPID_SUBJECT=mailto:<seu-email>
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```bash
+cp .env.example .env.local
 ```
+
+Todas as variáveis estão documentadas em `.env.example` com instruções para cada uma.
 
 Para gerar as chaves VAPID:
 
@@ -201,6 +200,23 @@ O trigger `trg_advance_task_due` recalcula `next_due` e redefine `status = 'pend
 ### Notificações push
 
 `POST /api/push/notify` verifica, para o usuário autenticado: tarefas com `next_due <= hoje` e última medição há ≥ 7 dias. Requer subscriptions salvas via `POST /api/push/subscribe`.
+
+---
+
+## Padrões do projeto
+
+## Scripts disponíveis
+
+| Comando | Descrição |
+|---|---|
+| `npm run dev` | Inicia o servidor de desenvolvimento |
+| `npm run build` | Build de produção |
+| `npm run lint` | Lint com ESLint |
+| `npm test` | Testes unitários com Vitest |
+| `npm run test:coverage` | Testes com relatório de cobertura |
+| `npm run gen:types` | Regenera `src/lib/supabase/types.ts` a partir do schema local do Supabase |
+
+> **Importante:** Execute `npm run gen:types` sempre que alterar o schema do banco (migrations). Requer o CLI do Supabase instalado e o projeto rodando localmente (`supabase start`).
 
 ---
 

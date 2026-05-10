@@ -1,6 +1,7 @@
 "use server";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { log } from "@/lib/logger";
 
 export async function deleteMeasurement(id: string) {
   const supabase = await createClient();
@@ -23,7 +24,10 @@ export async function deleteMeasurement(id: string) {
     .eq("id", id)
     .eq("pool_id", pool.id);
 
-  if (error) return { error: error.message };
+  if (error) {
+    log({ level: "error", action: "deleteMeasurement", userId: user.id, measurementId: id, error: error.message });
+    return { error: error.message };
+  }
 
   revalidatePath("/medicoes");
   revalidatePath("/");
@@ -68,7 +72,10 @@ export async function editMeasurement(id: string, formData: FormData) {
     .eq("id", id)
     .eq("pool_id", pool.id);
 
-  if (mError) return { error: mError.message };
+  if (mError) {
+    log({ level: "error", action: "editMeasurement", userId: user.id, measurementId: id, error: mError.message });
+    return { error: mError.message };
+  }
 
   await supabase.from("pools").update({ volume: poolVolume }).eq("id", pool.id);
 
@@ -109,7 +116,10 @@ export async function addMeasurement(poolId: string, formData: FormData) {
     ...(measuredAtRaw ? { measured_at: measuredAtRaw } : {}),
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    log({ level: "error", action: "addMeasurement", userId: user.id, poolId, error: error.message });
+    return { error: error.message };
+  }
 
   revalidatePath("/medicoes");
   revalidatePath("/");
