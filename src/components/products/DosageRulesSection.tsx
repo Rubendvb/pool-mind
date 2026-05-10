@@ -70,8 +70,11 @@ export function DosageRulesSection({ productId }: Props) {
     setShowAddForm(false);
   }
 
-  async function handleAddRule(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleAddRule() {
+    if (!newName.trim() || !newAmount) {
+      setAddError("Nome e quantidade são obrigatórios.");
+      return;
+    }
     setSaving(true);
     setAddError(null);
 
@@ -157,10 +160,7 @@ export function DosageRulesSection({ productId }: Props) {
       )}
 
       {showAddForm ? (
-        <form
-          onSubmit={handleAddRule}
-          className="flex flex-col gap-3 glass rounded-xl px-3 py-3 border border-white/10"
-        >
+        <div className="flex flex-col gap-3 glass rounded-xl px-3 py-3 border border-white/10">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <label className={labelClass}>Tipo de uso</label>
@@ -256,7 +256,8 @@ export function DosageRulesSection({ productId }: Props) {
               Cancelar
             </button>
             <button
-              type="submit"
+              type="button"
+              onClick={handleAddRule}
               disabled={saving}
               aria-busy={saving}
               className="flex-1 py-2 text-xs font-semibold text-white bg-ocean-700 hover:bg-ocean-600 disabled:opacity-50 transition-colors rounded-xl"
@@ -264,7 +265,7 @@ export function DosageRulesSection({ productId }: Props) {
               {saving ? "Salvando..." : "Salvar regra"}
             </button>
           </div>
-        </form>
+        </div>
       ) : (
         <button
           type="button"
