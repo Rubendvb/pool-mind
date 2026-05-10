@@ -59,6 +59,11 @@ body {
   border-radius: 1rem;
 }
 
+/* Safe area padding para iPhones com notch/Dynamic Island */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Bottom navigation */
 .nav-bar {
   background: rgba(2 20 80 / 0.92);
