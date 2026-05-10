@@ -10,7 +10,7 @@ export function NewTaskButton() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString("en-CA");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -86,13 +86,14 @@ export function NewTaskButton() {
             />
           </div>
           {error && (
-            <p className="text-sm text-status-danger bg-status-danger/10 px-3 py-2 rounded-lg">
+            <p role="alert" className="text-sm text-status-danger bg-status-danger/10 px-3 py-2 rounded-lg">
               {error}
             </p>
           )}
           <button
             type="submit"
             disabled={pending}
+            aria-busy={pending}
             className="bg-ocean-700 hover:bg-ocean-600 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-colors mt-1"
           >
             {pending ? "Salvando..." : "Criar tarefa"}

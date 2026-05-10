@@ -244,7 +244,7 @@ export function DosageRulesSection({ productId }: Props) {
           </div>
 
           {addError && (
-            <p className="text-xs text-status-danger">{addError}</p>
+            <p role="alert" className="text-xs text-status-danger">{addError}</p>
           )}
 
           <div className="flex gap-2">
@@ -258,6 +258,7 @@ export function DosageRulesSection({ productId }: Props) {
             <button
               type="submit"
               disabled={saving}
+              aria-busy={saving}
               className="flex-1 py-2 text-xs font-semibold text-white bg-ocean-700 hover:bg-ocean-600 disabled:opacity-50 transition-colors rounded-xl"
             >
               {saving ? "Salvando..." : "Salvar regra"}

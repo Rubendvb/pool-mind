@@ -20,6 +20,9 @@ export function Modal({ open, onClose, title, children }: Props) {
     const focusable = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE));
     focusable[0]?.focus();
 
+    // Prevent background scroll while modal is open
+    document.body.classList.add("overflow-hidden");
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") { onClose(); return; }
       if (e.key !== "Tab" || !focusable.length) return;
@@ -33,7 +36,10 @@ export function Modal({ open, onClose, title, children }: Props) {
     };
 
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.classList.remove("overflow-hidden");
+    };
   }, [open, onClose]);
 
   if (!open) return null;

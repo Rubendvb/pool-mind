@@ -1,5 +1,5 @@
+import Link from "next/link";
 import { Header } from "@/components/layout/Header";
-import { LogoutButton } from "@/components/layout/LogoutButton";
 import { ApplicationsReport } from "@/components/insights/ApplicationsReport";
 import { NotificationSetup } from "@/components/push/NotificationSetup";
 import { ParameterChartClient } from "@/components/insights/ParameterChartClient";
@@ -11,7 +11,15 @@ export default async function InsightsPage() {
   if (!pool) {
     return (
       <main className="pb-24 max-w-lg mx-auto w-full">
-        <Header title="Insights" subtitle="Nenhuma piscina cadastrada" />
+        <Header
+        title="Insights"
+        subtitle="Nenhuma piscina cadastrada"
+        action={
+          <Link href="/configuracoes" aria-label="Configurações" className="p-2 rounded-xl text-ocean-400/60 hover:text-ocean-300 hover:bg-white/10 transition-all">
+            ⚙️
+          </Link>
+        }
+      />
       </main>
     );
   }
@@ -30,7 +38,19 @@ export default async function InsightsPage() {
 
   return (
     <main className="pb-24 max-w-lg mx-auto w-full">
-      <Header title="Insights" subtitle={pool.name} action={<LogoutButton />} />
+      <Header
+        title="Insights"
+        subtitle={pool.name}
+        action={
+          <Link
+            href="/configuracoes"
+            aria-label="Configurações"
+            className="p-2 rounded-xl text-ocean-400/60 hover:text-ocean-300 hover:bg-white/10 transition-all"
+          >
+            ⚙️
+          </Link>
+        }
+      />
 
       <div className="px-4 flex flex-col gap-4">
         {/* Resumo */}

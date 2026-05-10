@@ -373,7 +373,7 @@ export function ProductFormButton({ product }: Props) {
           </div>
 
           {error && (
-            <p className="text-sm text-status-danger bg-status-danger/10 px-3 py-2 rounded-lg">
+            <p role="alert" className="text-sm text-status-danger bg-status-danger/10 px-3 py-2 rounded-lg">
               {error}
             </p>
           )}
@@ -381,6 +381,7 @@ export function ProductFormButton({ product }: Props) {
           <button
             type="submit"
             disabled={pending}
+            aria-busy={pending}
             className="bg-ocean-700 hover:bg-ocean-600 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-colors mt-1"
           >
             {pending ? "Salvando..." : isEdit ? "Salvar alterações" : "Adicionar produto"}

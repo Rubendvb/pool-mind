@@ -9,6 +9,7 @@ const items = [
   { href: "/produtos", label: "Produtos", icon: "🧴", ariaLabel: "Estoque de produtos" },
   { href: "/calculadoras", label: "Cálculos", icon: "🧮", ariaLabel: "Calculadoras" },
   { href: "/insights", label: "Insights", icon: "📊", ariaLabel: "Insights e relatórios" },
+  { href: "/configuracoes", label: "Config.", icon: "⚙️", ariaLabel: "Configurações" },
 ];
 
 export function BottomNav() {

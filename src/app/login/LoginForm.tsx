@@ -38,12 +38,12 @@ export function LoginForm() {
       />
 
       {feedback?.error && (
-        <p className="text-sm text-status-danger bg-status-danger/10 px-3 py-2 rounded-lg">
+        <p role="alert" className="text-sm text-status-danger bg-status-danger/10 px-3 py-2 rounded-lg">
           {feedback.error}
         </p>
       )}
       {feedback?.message && (
-        <p className="text-sm text-status-ok bg-status-ok/10 px-3 py-2 rounded-lg">
+        <p role="status" className="text-sm text-status-ok bg-status-ok/10 px-3 py-2 rounded-lg">
           {feedback.message}
         </p>
       )}
@@ -51,6 +51,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={pending}
+        aria-busy={pending}
         className="bg-ocean-700 hover:bg-ocean-600 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-colors"
       >
         {pending ? "Aguarde..." : mode === "login" ? "Entrar" : "Criar conta"}
